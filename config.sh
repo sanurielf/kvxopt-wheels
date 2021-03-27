@@ -2,10 +2,11 @@
 # Test for OSX with [ -n "$IS_OSX" ]
 
 # Configure which optional extensions to build
-export KVXOPT_BUILD_DSDP=1
+export KVXOPT_BUILD_DSDP=0
 export KVXOPT_BUILD_FFTW=1
 export KVXOPT_BUILD_GLPK=1
 export KVXOPT_BUILD_GSL=1
+export KVXOPT_BUILD_OSQP=1
 export OPENBLAS_VERSION=0.3.13
 TESTS_DIR="$(pwd)/cvxopt/tests"
 
@@ -35,6 +36,7 @@ function pre_build {
     if [ "${KVXOPT_BUILD_FFTW}" == "1" ]; then build_fftw; fi
     if [ "${KVXOPT_BUILD_GLPK}" == "1" ]; then build_glpk; fi
     if [ "${KVXOPT_BUILD_GSL}" == "1" ]; then build_gsl; fi
+    if [ "${KVXOPT_BUILD_OSQP}" == "1" ]; then build_osqp; fi
 
     export KVXOPT_GLPK_LIB_DIR=${BUILD_PREFIX}/lib
     export KVXOPT_GLPK_INC_DIR=${BUILD_PREFIX}/include
@@ -44,6 +46,8 @@ function pre_build {
     export KVXOPT_FFTW_INC_DIR=${BUILD_PREFIX}/include
     export KVXOPT_DSDP_LIB_DIR=${BUILD_PREFIX}/lib
     export KVXOPT_DSDP_INC_DIR=${BUILD_PREFIX}/include
+    export KVXOPT_OSQP_LIB_DIR=${BUILD_PREFIX}/lib
+    export KVXOPT_OSQP_INC_DIR=${BUILD_PREFIX}/include
     export KVXOPT_SUITESPARSE_SRC_DIR=`pwd`/SuiteSparse
 }
 
@@ -55,5 +59,6 @@ function run_tests {
     if [ "${KVXOPT_BUILD_FFTW}" == "1" ]; then python -c 'from cvxopt import fftw'; fi
     if [ "${KVXOPT_BUILD_GLPK}" == "1" ]; then python -c 'from cvxopt import glpk'; fi
     if [ "${KVXOPT_BUILD_GSL}" == "1" ]; then python -c 'from cvxopt import gsl'; fi
+    if [ "${KVXOPT_BUILD_OSQP}" == "1" ]; then python -c 'from cvxopt import osqp'; fi
     pytest ${TESTS_DIR}
 }

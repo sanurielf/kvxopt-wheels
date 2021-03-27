@@ -10,6 +10,8 @@ FFTW_VERSION="3.3.8"
 FFTW_SHA256="6113262f6e92c5bd474f2875fa1b01054c4ad5040f6b0da7c03c98821d9ae303"
 SUITESPARSE_VERSION="5.7.2"
 SUITESPARSE_SHA256="fe3bc7c3bd1efdfa5cffffb5cebf021ff024c83b5daf0ab445429d3d741bd3ad"
+OSQP_VERSION="0.6.2"
+OSQP_SHA256="d973c33c3164caa381ed7387375347a46f7522523350a4e51989479b9d3b59c7"
 
 
 type fetch_unpack &> /dev/null || source multibuild/library_builders.sh
@@ -62,4 +64,17 @@ function build_gsl {
       && make \
       && make install)
   touch gsl-stamp
+}
+
+function build_osqp {
+  if [ -e osqp-stamp ]; then return; fi
+  fetch_unpack https://github.com/oxfordcontrol/osqp/archive/refs/tags/v${OSQP_VERSION}.tar.gz osqp-${OSQP_VERSION}.tar.gz
+  check_sha256sum archives/osqp-${OSQP_VERSION}.tar.gz ${OSQP_SHA256}
+  (cd osqp-${OSQP_VERSION} \
+      && yum install cmake \
+      && mkdir build \
+      && cd build\
+      && $cmake .. \
+      && $cmake --build . --target install)
+  touch osqp-stamp
 }
