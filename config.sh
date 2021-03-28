@@ -6,15 +6,26 @@ export KVXOPT_BUILD_DSDP=0
 export KVXOPT_BUILD_FFTW=1
 export KVXOPT_BUILD_GLPK=1
 export KVXOPT_BUILD_GSL=1
-export KVXOPT_BUILD_OSQP=1
 export OPENBLAS_VERSION=0.3.13
-TESTS_DIR="$(pwd)/cvxopt/tests"
+
+# OSQP cannot be build in manylinux1 because Cmake>=3.2
+if [ -z "$IS_MACOS" -a "${MB_ML_VER}" == "1" ]; then 
+    export KVXOPT_BUILD_OSQP=0
+else
+    export KVXOPT_BUILD_OSQP=1
+fi
+
+
+
+TESTS_DIR="$(pwd)/kvxopt/tests"
 
 source library_builders.sh
 
 function pre_build {
     # Any stuff that you need to do before you start building the wheels
     # Runs in the root directory of this repository.
+
+
 
     # Download SuiteSparse
     if [ ! -e suitesparse-stamp ]; then
@@ -26,17 +37,19 @@ function pre_build {
     fi
 
     # Build dependencies
-    if [ -z "${IS_OSX}" ]; then
+    if [ -z "${IS_MACOS}" ]; then
         build_openblas  # defined in multibuild/library_builders.sh
         export KVXOPT_BLAS_LIB=openblas
         export KVXOPT_LAPACK_LIB=openblas
         export KVXOPT_BLAS_LIB_DIR=${BUILD_PREFIX}/lib
     fi
+
+
+    if [ "${KVXOPT_BUILD_OSQP}" == "1" ]; then build_osqp; fi
     if [ "${KVXOPT_BUILD_DSDP}" == "1" ]; then build_dsdp; fi
     if [ "${KVXOPT_BUILD_FFTW}" == "1" ]; then build_fftw; fi
     if [ "${KVXOPT_BUILD_GLPK}" == "1" ]; then build_glpk; fi
     if [ "${KVXOPT_BUILD_GSL}" == "1" ]; then build_gsl; fi
-    if [ "${KVXOPT_BUILD_OSQP}" == "1" ]; then build_osqp; fi
 
     export KVXOPT_GLPK_LIB_DIR=${BUILD_PREFIX}/lib
     export KVXOPT_GLPK_INC_DIR=${BUILD_PREFIX}/include
@@ -47,18 +60,15 @@ function pre_build {
     export KVXOPT_DSDP_LIB_DIR=${BUILD_PREFIX}/lib
     export KVXOPT_DSDP_INC_DIR=${BUILD_PREFIX}/include
     export KVXOPT_OSQP_LIB_DIR=${BUILD_PREFIX}/lib
-    export KVXOPT_OSQP_INC_DIR=${BUILD_PREFIX}/include
+    export KVXOPT_OSQP_INC_DIR=${BUILD_PREFIX}/include/osqp
     export KVXOPT_SUITESPARSE_SRC_DIR=`pwd`/SuiteSparse
 }
 
 function run_tests {
+
     # Runs tests on installed distribution from an empty directory
     python --version
-    python -c 'from cvxopt import blas,lapack,cholmod,umfpack, klu'
-    if [ "${KVXOPT_BUILD_DSDP}" == "1" ]; then python -c 'from cvxopt import dsdp'; fi
-    if [ "${KVXOPT_BUILD_FFTW}" == "1" ]; then python -c 'from cvxopt import fftw'; fi
-    if [ "${KVXOPT_BUILD_GLPK}" == "1" ]; then python -c 'from cvxopt import glpk'; fi
-    if [ "${KVXOPT_BUILD_GSL}" == "1" ]; then python -c 'from cvxopt import gsl'; fi
-    if [ "${KVXOPT_BUILD_OSQP}" == "1" ]; then python -c 'from cvxopt import osqp'; fi
+    python -c 'from kvxopt import blas,lapack,cholmod,umfpack,klu'
+    
     pytest ${TESTS_DIR}
 }

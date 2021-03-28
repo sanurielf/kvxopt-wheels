@@ -1,10 +1,12 @@
 env:
     global:
+        - UPLOAD_TO_WASABY=1
+
         - REPO_DIR=kvxopt
         # Commit from your-project that you want to build
         - BUILD_COMMIT=1.2.6.0
         # pip dependencies to _build_ your project
-        - BUILD_DEPENDS="cython numpy"
+        - BUILD_DEPENDS=""
         - TEST_DEPENDS="pytest"
         - PLAT=x86_64
         - UNICODE_WIDTH=32
@@ -41,44 +43,10 @@ services: docker
 # and test containers, via docker.
 dist: xenial
 
-# osx image that enables building Apple silicon libraries
-osx_image: xcode12.2
 
 matrix:
   include:
-    - os: linux
-      env: MB_PYTHON_VERSION=2.7
-    - os: linux
-      env:
-        - MB_PYTHON_VERSION=2.7
-        - UNICODE_WIDTH=16
-    - os: linux
-      env:
-        - MB_PYTHON_VERSION=2.7
-        - PLAT=i686
-    - os: linux
-      env:
-        - MB_PYTHON_VERSION=2.7
-        - PLAT=i686
-        - UNICODE_WIDTH=16
-    - os: linux
-      env:
-        - MB_PYTHON_VERSION=3.5
-    - os: linux
-      env:
-        - MB_PYTHON_VERSION=3.5
-        - PLAT=i686
-    - os: linux
-      env:
-        - MB_PYTHON_VERSION=3.6
-    - os: linux
-      env:
-        - MB_PYTHON_VERSION=3.6
-        - PLAT=i686
-    - os: osx
-      env:
-        - MB_PYTHON_VERSION=2.7
-        - MB_PYTHON_OSX_VER=10.6
+    # OSX builds
     - os: osx
       env:
         - MB_PYTHON_VERSION=2.7
@@ -88,23 +56,118 @@ matrix:
     - os: osx
       env:
         - MB_PYTHON_VERSION=3.6
-    - os: osx
-      env:
-        - MB_PYTHON_VERSION=3.7
-        - MB_PYTHON_OSX_VER=10.6
     - os: osx
       env:
         - MB_PYTHON_VERSION=3.7
     - os: osx
       env:
         - MB_PYTHON_VERSION=3.8
-    - os: osxg
-      env:
-        - MB_PYTHON_VERSION=3.9
-        - PLAT="universal2"
     - os: osx
       env:
         - MB_PYTHON_VERSION=3.9
+
+    # 64-bit linux builds
+    - os: linux
+      env:
+        - MB_PYTHON_VERSION=2.7
+        - MB_ML_VER=1
+    - os: linux
+      env:
+        - MB_PYTHON_VERSION=3.5
+        - MB_ML_VER=1
+    - os: linux
+      env: 
+        - MB_PYTHON_VERSION=3.5
+        - MB_ML_VER=2014
+    - os: linux
+      env:
+        - MB_PYTHON_VERSION=3.6
+        - MB_ML_VER=1
+    - os: linux
+      env: 
+        - MB_PYTHON_VERSION=3.6
+        - MB_ML_VER=2014
+    - os: linux
+      env:
+        - MB_PYTHON_VERSION=3.7
+        - MB_ML_VER=1
+    - os: linux
+      env: 
+        - MB_PYTHON_VERSION=3.7
+        - MB_ML_VER=2014
+    - os: linux
+      env:
+        - MB_PYTHON_VERSION=3.8
+        - MB_ML_VER=1
+    - os: linux
+      env: 
+        - MB_PYTHON_VERSION=3.8
+        - MB_ML_VER=2014
+    - os: linux
+      env:
+        - MB_PYTHON_VERSION=3.9
+        - MB_ML_VER=1
+    - os: linux
+      env: 
+        - MB_PYTHON_VERSION=3.9
+        - MB_ML_VER=2014
+
+    # 32-bit linux builds
+    - os: linux
+      env:
+        - MB_PYTHON_VERSION=2.7
+        - MB_ML_VER=1
+        - PLAT=i686
+    - os: linux
+      env:
+        - MB_PYTHON_VERSION=3.5
+        - MB_ML_VER=1
+        - PLAT=i686
+    - os: linux
+      env: 
+        - MB_PYTHON_VERSION=3.5
+        - MB_ML_VER=2014
+        - PLAT=i686
+    - os: linux
+      env:
+        - MB_PYTHON_VERSION=3.6
+        - MB_ML_VER=1
+        - PLAT=i686
+    - os: linux
+      env: 
+        - MB_PYTHON_VERSION=3.6
+        - MB_ML_VER=2014
+        - PLAT=i686
+    - os: linux
+      env:
+        - MB_PYTHON_VERSION=3.7
+        - MB_ML_VER=1
+        - PLAT=i686
+    - os: linux
+      env: 
+        - MB_PYTHON_VERSION=3.7
+        - MB_ML_VER=2014
+        - PLAT=i686
+    - os: linux
+      env:
+        - MB_PYTHON_VERSION=3.8
+        - MB_ML_VER=1
+        - PLAT=i686
+    - os: linux
+      env: 
+        - MB_PYTHON_VERSION=3.8
+        - MB_ML_VER=2014
+        - PLAT=i686
+    - os: linux
+      env:
+        - MB_PYTHON_VERSION=3.9
+        - MB_ML_VER=1
+        - PLAT=i686
+    - os: linux
+      env: 
+        - MB_PYTHON_VERSION=3.9
+        - MB_ML_VER=2014
+        - PLAT=i686
 
 
 before_install:
@@ -119,6 +182,24 @@ install:
 
 script:
     - install_run $PLAT
+
+before_deploy: cd ${TRAVIS_BUILD_DIR}/wheelhouse
+
+deploy:
+  provider: s3
+  region: us-west-1
+  verbose: true
+  endpoint: s3.us-west-1.wasabisys.com
+  access_key_id:
+    secure: "SKQffPYToTjYwn4AzmgLfQ43BKfIieAFS/6fAy/muWZiWqz+k7RqvkHFQs3cONn1E9cI+m27TNVtN5JogoaGmfZKVbOB7FyDtcXdr2HV07k7WfPUEHQXhe6lCLRyzz2KVcdnafijll9hrSlQvt5cC8A5qCmWmsDE38s+0kmgArq8BHs5tsdH9BVn/9neQMtAsdTb349owPm5CFumCDxvIgFAhr3/d4KfRNwKdjhRac39AhkeOqet26oAesRWYlHuOplvjA6ZKY1tBIax/YwzhDiPf49qehy1HOwxAMKUfcRY680Aa3B2yivmJO8W5wFEA9v+dM97gyvjcAHKdXB4El497mLSWDzuo4YcmtpH9QW8arpoVJZPMmzbW9iU6zOg2iBF9sBw2jbEAImBriZQnUU3xhXxV00a2N+8ufp83NDTB3H+hS0AuXFAbDckhn8UbOdzc19IxrZGOFj+HL+mZ4WZOnkHKdM6ozPFl62RPOspgJaidCPeKBYCaxoUbAOjXSFMjTfk0JPaVmhEMeeH4aq/jxuiAVDIoJDT0KCtGDHJxYWRxNTsjWJr2TbpQTnNrPlHAUbBeHysZ0csfCpw2a6Z2sKEZ7xI4XnjXUXuubPPkiCEMvaCuFkuLkO/4FSmegtouYmobZo530J+gfmVtHgr5CPOzRxB8J+Kf8CBiq4="
+  secret_access_key: 
+    secure: "F0gazKiqBst2KLNeoVHcY9iPAoibhbq0zI37nxzux2mEhXQ7MCO3OVuH/edJzbhFBPnmT/DpZUGnrDSoNzR64fT99mxYF/miyfwPU8mhb/NE1TOj1CrmqKQL8ViNBnaXdKG6THYjEif+r9VX7vmibCyxFaAU7DUNf+w95fUooxTGD09PWdk4bqNiQwZLCPKrVbwIdxm7cQZqPpIw9ptUEmB7eZPpqY3nxUWytSTzLmlFq9vyBfhIdFJiHi/Bhi1Pf1HIOeNMak1HOHQ+MIeo5lq+SsZMjAfzeDK6GPBVloVYRp4SJU1mXhqTwJ6TjY4ag0iY2FMitXcsGEsH1MTn9s5zf95Ul+a8yn5rELaDgYIficLJJukkGS28JMu8fxTP8tJQLu3c2ZGW0KpmUfBb1tpSmth2+zxv/V9BpFZyzkb/XfPNtqezHd/BIXbeM/NlRy8g4z2EC3TuTDQKiWgcYcMsBGG6Oj/uyOhzs2qvikWyN2etUC8VoGKAWkmrR/roX1tBvVyJ6kaH9XL2RO+mFSK6LIzGbCPGJM2/RqVRBLr4auBCoh51uWF+e/DJUj5XsFcuKUi8rYambztqacplv0icuNBwGYO2aYvj1WqHAMwBljTCE2Jt2mNdRyA/42o37fOHVd/MTRT889VfS06i/FLjZIa6SOyJYPltk5SRVE8="
+  bucket: kvxoptwheels
+  on:
+    repo: sanurielf/kvxopt-wheels
+    branch: master
+    condition: $UPLOAD_TO_WASABY = 1
+
 
 after_success:
     # Here you should put the code to upload your wheels
