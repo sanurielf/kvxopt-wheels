@@ -1,6 +1,6 @@
 env:
     global:
-        - UPLOAD_TO_WASABY=0
+        - UPLOAD_TO_WASABY=1
 
         - REPO_DIR=kvxopt
         # Commit from your-project that you want to build

@@ -1,11 +1,74 @@
-name: Publish Windows
+name: Deploy windows wheels and source code
 
 on:
   push:
     branches: [master]
 
+env:
+  BUILD_COMMIT: 1.2.6.0
 
-jobs:    
+jobs:
+
+  deploy_source_code:
+
+    runs-on: macos-latest
+
+    strategy:
+      matrix:
+        python-version: [3.8]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Checkout submodules
+        run: |
+          git submodule update --init --recursive   
+          cd kvxopt
+          git checkout ${BUILD_COMMIT}
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install twine
+
+      - name: Install libraries
+        run: |
+            brew install openblas glpk gsl fftw suite-sparse
+
+      - name: Build 
+        run: |
+          cd kvxopt
+          python setup.py build
+          python setup.py sdist
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: kvxopt-source
+          path: kvxopt/dist/*.tar.gz
+
+      - name: Publish wheels to PyPI test
+        env:
+          TWINE_USERNAME: ${{ secrets.PYPI_TEST_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_TEST_PASSWORD }}
+        run: |
+          twine upload --repository testpypi kvxopt/dist/*.tar.gz
+        if: ${{ github.event_name == 'release' && github.event.action == 'prereleased' }}
+
+      - name: Publish wheels to PyPI
+        env:
+          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+        run: |
+          twine upload kvxopt/dist/*.tar.gz
+        if: ${{ github.event_name == 'release' && github.event.action == 'released' }}
+
+
+
   Build_wheel:
     runs-on: windows-latest
     env:
@@ -45,8 +108,11 @@ jobs:
       - uses: actions/checkout@v2
       
       - name: Checkout submodules
-        run: git submodule update --init --recursive      
-      
+        run: |
+          git submodule update --init --recursive      
+          cd kvxopt
+          git checkout ${BUILD_COMMIT}
+
       - name: Setup Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
@@ -168,7 +234,10 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Checkout submodules
-        run: git submodule update --init --recursive 
+        run: |
+          git submodule update --init --recursive 
+          cd kvxopt
+          git checkout ${BUILD_COMMIT}
 
       - name: Setup Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2

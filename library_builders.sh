@@ -94,14 +94,14 @@ function build_osqp {
   if [ -n "${IS_OSX}" ]; then
       brew install osqp
   else
-  local cmake=$(get_cmake_320)
+  get_cmake_320
   git clone --recursive https://github.com/oxfordcontrol/osqp.git
   (cd osqp \
       && git checkout v${OSQP_VERSION} \
       && mkdir build \
       && cd build \
-      && $cmake -DCMAKE_INSTALL_PREFIX=$BUILD_PREFIX .. \
-      && $cmake --build . --target install)
+      && cmake -DCMAKE_INSTALL_PREFIX=$BUILD_PREFIX .. \
+      && cmake --build . --target install)
 fi
   touch osqp-stamp
 }
