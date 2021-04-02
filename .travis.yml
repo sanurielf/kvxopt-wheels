@@ -1,7 +1,10 @@
 env:
     global:
         - UPLOAD_TO_WASABY=1
-
+        # Upload to test pipy
+        - UPLOAD_TO_TEST_PYPI=0
+        # Upload to official pipy repo
+        - UPLOAD_TO_OFFI_PYPI=0
         - REPO_DIR=kvxopt
         # Commit from your-project that you want to build
         - BUILD_COMMIT=1.2.6.0
@@ -186,21 +189,43 @@ script:
 before_deploy: cd ${TRAVIS_BUILD_DIR}/wheelhouse
 
 deploy:
-  provider: s3
-  region: us-west-1
-  verbose: true
-  endpoint: s3.us-west-1.wasabisys.com
-  access_key_id:
-    secure: "SKQffPYToTjYwn4AzmgLfQ43BKfIieAFS/6fAy/muWZiWqz+k7RqvkHFQs3cONn1E9cI+m27TNVtN5JogoaGmfZKVbOB7FyDtcXdr2HV07k7WfPUEHQXhe6lCLRyzz2KVcdnafijll9hrSlQvt5cC8A5qCmWmsDE38s+0kmgArq8BHs5tsdH9BVn/9neQMtAsdTb349owPm5CFumCDxvIgFAhr3/d4KfRNwKdjhRac39AhkeOqet26oAesRWYlHuOplvjA6ZKY1tBIax/YwzhDiPf49qehy1HOwxAMKUfcRY680Aa3B2yivmJO8W5wFEA9v+dM97gyvjcAHKdXB4El497mLSWDzuo4YcmtpH9QW8arpoVJZPMmzbW9iU6zOg2iBF9sBw2jbEAImBriZQnUU3xhXxV00a2N+8ufp83NDTB3H+hS0AuXFAbDckhn8UbOdzc19IxrZGOFj+HL+mZ4WZOnkHKdM6ozPFl62RPOspgJaidCPeKBYCaxoUbAOjXSFMjTfk0JPaVmhEMeeH4aq/jxuiAVDIoJDT0KCtGDHJxYWRxNTsjWJr2TbpQTnNrPlHAUbBeHysZ0csfCpw2a6Z2sKEZ7xI4XnjXUXuubPPkiCEMvaCuFkuLkO/4FSmegtouYmobZo530J+gfmVtHgr5CPOzRxB8J+Kf8CBiq4="
-  secret_access_key: 
-    secure: "F0gazKiqBst2KLNeoVHcY9iPAoibhbq0zI37nxzux2mEhXQ7MCO3OVuH/edJzbhFBPnmT/DpZUGnrDSoNzR64fT99mxYF/miyfwPU8mhb/NE1TOj1CrmqKQL8ViNBnaXdKG6THYjEif+r9VX7vmibCyxFaAU7DUNf+w95fUooxTGD09PWdk4bqNiQwZLCPKrVbwIdxm7cQZqPpIw9ptUEmB7eZPpqY3nxUWytSTzLmlFq9vyBfhIdFJiHi/Bhi1Pf1HIOeNMak1HOHQ+MIeo5lq+SsZMjAfzeDK6GPBVloVYRp4SJU1mXhqTwJ6TjY4ag0iY2FMitXcsGEsH1MTn9s5zf95Ul+a8yn5rELaDgYIficLJJukkGS28JMu8fxTP8tJQLu3c2ZGW0KpmUfBb1tpSmth2+zxv/V9BpFZyzkb/XfPNtqezHd/BIXbeM/NlRy8g4z2EC3TuTDQKiWgcYcMsBGG6Oj/uyOhzs2qvikWyN2etUC8VoGKAWkmrR/roX1tBvVyJ6kaH9XL2RO+mFSK6LIzGbCPGJM2/RqVRBLr4auBCoh51uWF+e/DJUj5XsFcuKUi8rYambztqacplv0icuNBwGYO2aYvj1WqHAMwBljTCE2Jt2mNdRyA/42o37fOHVd/MTRT889VfS06i/FLjZIa6SOyJYPltk5SRVE8="
-  bucket: kvxoptwheels
-  on:
-    repo: sanurielf/kvxopt-wheels
-    branch: master
-    condition: $UPLOAD_TO_WASABY = 1
+  - provider: s3
+    skip_cleanup: true
+    region: us-west-1
+    verbose: true
+    endpoint: s3.us-west-1.wasabisys.com
+    access_key_id:
+      secure: "SKQffPYToTjYwn4AzmgLfQ43BKfIieAFS/6fAy/muWZiWqz+k7RqvkHFQs3cONn1E9cI+m27TNVtN5JogoaGmfZKVbOB7FyDtcXdr2HV07k7WfPUEHQXhe6lCLRyzz2KVcdnafijll9hrSlQvt5cC8A5qCmWmsDE38s+0kmgArq8BHs5tsdH9BVn/9neQMtAsdTb349owPm5CFumCDxvIgFAhr3/d4KfRNwKdjhRac39AhkeOqet26oAesRWYlHuOplvjA6ZKY1tBIax/YwzhDiPf49qehy1HOwxAMKUfcRY680Aa3B2yivmJO8W5wFEA9v+dM97gyvjcAHKdXB4El497mLSWDzuo4YcmtpH9QW8arpoVJZPMmzbW9iU6zOg2iBF9sBw2jbEAImBriZQnUU3xhXxV00a2N+8ufp83NDTB3H+hS0AuXFAbDckhn8UbOdzc19IxrZGOFj+HL+mZ4WZOnkHKdM6ozPFl62RPOspgJaidCPeKBYCaxoUbAOjXSFMjTfk0JPaVmhEMeeH4aq/jxuiAVDIoJDT0KCtGDHJxYWRxNTsjWJr2TbpQTnNrPlHAUbBeHysZ0csfCpw2a6Z2sKEZ7xI4XnjXUXuubPPkiCEMvaCuFkuLkO/4FSmegtouYmobZo530J+gfmVtHgr5CPOzRxB8J+Kf8CBiq4="
+    secret_access_key: 
+      secure: "F0gazKiqBst2KLNeoVHcY9iPAoibhbq0zI37nxzux2mEhXQ7MCO3OVuH/edJzbhFBPnmT/DpZUGnrDSoNzR64fT99mxYF/miyfwPU8mhb/NE1TOj1CrmqKQL8ViNBnaXdKG6THYjEif+r9VX7vmibCyxFaAU7DUNf+w95fUooxTGD09PWdk4bqNiQwZLCPKrVbwIdxm7cQZqPpIw9ptUEmB7eZPpqY3nxUWytSTzLmlFq9vyBfhIdFJiHi/Bhi1Pf1HIOeNMak1HOHQ+MIeo5lq+SsZMjAfzeDK6GPBVloVYRp4SJU1mXhqTwJ6TjY4ag0iY2FMitXcsGEsH1MTn9s5zf95Ul+a8yn5rELaDgYIficLJJukkGS28JMu8fxTP8tJQLu3c2ZGW0KpmUfBb1tpSmth2+zxv/V9BpFZyzkb/XfPNtqezHd/BIXbeM/NlRy8g4z2EC3TuTDQKiWgcYcMsBGG6Oj/uyOhzs2qvikWyN2etUC8VoGKAWkmrR/roX1tBvVyJ6kaH9XL2RO+mFSK6LIzGbCPGJM2/RqVRBLr4auBCoh51uWF+e/DJUj5XsFcuKUi8rYambztqacplv0icuNBwGYO2aYvj1WqHAMwBljTCE2Jt2mNdRyA/42o37fOHVd/MTRT889VfS06i/FLjZIa6SOyJYPltk5SRVE8="
+    bucket: kvxoptwheels
+    on:
+      repo: sanurielf/kvxopt-wheels
+      branch: master
+      condition: $UPLOAD_TO_WASABY = 1
 
+  - provider: pypi
+    skip_cleanup: true
+    server: https://test.pypi.org/
+    username: 
+      secure: "HwK0jdCtcrgKcLiOHMLCqEoLJUBz+Trz4yaVC4QQVCH77y9oG/Mv5O1D1/B6PFywxwK/Z9JJYBvqH7gzeDiz+1Z3M9fjaLdlOwrzr1F14ebkGreELhhl8bWBrNk2PUWi0NyiYjRFVo578ZmN8Z36dHarxY98OviuCy56l6HPaMBDvT0tlmoExvvDIpfXFOkvgkBfN6Wb9+vNtn85J8sLa98y1saTOntcYqZcVaK0+SvUIRw2zIbMdTPBqQrydVw+SqBIReVozYcN0jcl6PRUi6vA/NTqPvY/bGj1ln+arAjbPgE/hMbhTbaMeWsR3hObeND64+tKK/8k0NfrwXufiTEtYSqgKyLOU6ruY/PYbFwfV40HJZVxzwZOijUpi1lcie6fgCqM3T+KgRle3a0xvYUoqvTORSENUdGxbWfK7VdnqHZ8WNOeCTKgE9EsZbae4ufQncyeh0nMvkFMerJO0EBSYxxjvUqiGk6W8IqdSb2LKO3gEFmwQ82kDyBWNNi4n83w+PxowJi1qNYvVSVUIxeThDZ2dlyR3qCsZ+DM5yyloKDgJS1VCRY/j9yaVpdS/9cVF2aHWzR9Kp69uKXnyDaz9ePe2aNKByXZRlR0R++g059sH7CSPSLfc26nfafLGnBj+N9pSt0C2Ey6TCVCyMdQGCcSDPW0wJLDk/uLOWw="
+    password: 
+      secure: "SbwCMk26jcutOoU84dFC3VQVGvhdEpj43a4NrhVxoUG8dgzTRFqU2KstMQ7E4GlsESB147xR+yHJDch7dEafgpUaA8In4Apt8avTnqZP6DaMk+YgS+nUuLD0OZsmKHnjSWW7By3E+K5NuygNSQINqKq6tIYlQiWGNszJzVTOfxE1cX4xKvzLxu5rQaVVwM+TSbLvQi/FrcNLMSLDmoTIZMlOTqV5EaOWI5xLM0r/SSehZTlaF9+nf/AJ3n2oNytnKA+lEepyTZAwOpVBDmOkPocBtPgzAnLvRcQPaaUGlQgB7qVthdEgIFhP41LoAhScVB+QlsB8kYzfhQjYXQb7ZQWbtYWSCJKegsC7c+s8Bv4BsrpC7SG7+yZRqyzbTwQdU3HrW8bPxFI5g6aqxA/2Y0D3SJWLP+2Gko8WXiavW2rcLte1mebnuMkeQV8kW6b9pvv3J99V5UZktxJLMuZgzi3XhpRl6C/l8v51qeInp2cqCu1iV13o5mLmD5iUlgncsVCNQw5ZCe9mlZMantM1AgTJMQwHNNSR6LDzJCJTJm4+K+En/trXK4CrFfiKQ1Oj0k6rgzl05FcylEbKZ0Jk4P8xq5xl0e45QKZrAXwKD6Pd/Fi3sM1ThsdCBNZ/VcSPEKoEZiwRzxwilytdYwbG9RMqF33lxEuBvGF6wzrFKww="
+    on:
+      repo: sanurielf/kvxopt-wheels
+      branch: master
+      condition: $UPLOAD_TO_TEST_PYPI = 1 
+      
+  - provider: pypi
+    skip_cleanup: true
+    username: 
+      secure: "HwK0jdCtcrgKcLiOHMLCqEoLJUBz+Trz4yaVC4QQVCH77y9oG/Mv5O1D1/B6PFywxwK/Z9JJYBvqH7gzeDiz+1Z3M9fjaLdlOwrzr1F14ebkGreELhhl8bWBrNk2PUWi0NyiYjRFVo578ZmN8Z36dHarxY98OviuCy56l6HPaMBDvT0tlmoExvvDIpfXFOkvgkBfN6Wb9+vNtn85J8sLa98y1saTOntcYqZcVaK0+SvUIRw2zIbMdTPBqQrydVw+SqBIReVozYcN0jcl6PRUi6vA/NTqPvY/bGj1ln+arAjbPgE/hMbhTbaMeWsR3hObeND64+tKK/8k0NfrwXufiTEtYSqgKyLOU6ruY/PYbFwfV40HJZVxzwZOijUpi1lcie6fgCqM3T+KgRle3a0xvYUoqvTORSENUdGxbWfK7VdnqHZ8WNOeCTKgE9EsZbae4ufQncyeh0nMvkFMerJO0EBSYxxjvUqiGk6W8IqdSb2LKO3gEFmwQ82kDyBWNNi4n83w+PxowJi1qNYvVSVUIxeThDZ2dlyR3qCsZ+DM5yyloKDgJS1VCRY/j9yaVpdS/9cVF2aHWzR9Kp69uKXnyDaz9ePe2aNKByXZRlR0R++g059sH7CSPSLfc26nfafLGnBj+N9pSt0C2Ey6TCVCyMdQGCcSDPW0wJLDk/uLOWw="
+    password: 
+      secure: "prEUvjWIsz5v2N+ZrwXEUVfyV5SeHf3NEq/2HVXvmYDsnxEIwpGDDlYtuGpri1NUmsqSiIFBp/RmbRp4MvGncnwfpXi7Aek4qbhaXmi4tQNUMkX7jIegnWao1a0ErnNCvpAOkm7CmQCBdq7Z9PdlENyUvqfN/sZ2ih2eYGpTAQxasEiHUpak9jp0BCxrkObpS/3FvJbBvnCO4xcYxYRa49Ai4qjMcliEcsy3AS4rMI4Y6+SllNmYG044LAI26senNAwLbFxik9C+ZFJgxUEQMkU/Y8pqr5hy3agifF9BMdzp+iTd6OnEseVgzubJcsHIiSlHdlK3zLoZ1J6ReDc8y+2xGEZSFQztTK/lw8hXzitZdCvmmUYuBGZZJTVECbrEz03p3RsTfb3nPIzdLO7NV2XCLVZkXK53reHsSnROGPBTEgGbbXvCVzsYybEJQDna6UY7u6uM3mlF7JljTeKLCxlfZHtj6xj/pBGne4cYTb4hh9yMj8eHGt/iL7mA1c20v4cvhmczv2lz3XDbaWmUWJiqHxpkMXOgmgnqL65MI5rrag7Cqy/1MU6taluCzJNY4H4qQeIQp4U45SvyQVirUBHbtmD5sfMCzhj5rNLC0JEeVV6A5Cq96Ja/c6hw5103xh0ztcXoKBzJLQuut8SjfX34xpQsLhxsLFXa+IIyLoY="
+    on:
+      repo: sanurielf/kvxopt-wheels
+      branch: master
+      condition: $UPLOAD_TO_OFFI_PYPI = 1      
 
-after_success:
-    # Here you should put the code to upload your wheels
-    # See the Uploads section for more details.
+after_success: 
+  #
