@@ -6,7 +6,7 @@ on:
 
 
 jobs:    
-  build:
+  Build_wheel:
     runs-on: windows-latest
     env:
       KVXOPT_BUILD_GSL: 0
@@ -62,7 +62,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest pytest-cov coveralls wheel twine
+          pip install wheel
 
 
       - name: Download openblas
@@ -139,7 +139,7 @@ jobs:
             echo "KVXOPT_OSQP_LIB_DIR=${{ github.workspace}}\osqp\build\dist\lib" >> $GITHUB_ENV
             echo "KVXOPT_OSQP_INC_DIR=${{ github.workspace}}\osqp\build\dist\include\osqp" >> $GITHUB_ENV
 
-      - name: Install (windows)
+      - name: Build wheel
         run: |
           cd kvxopt
           python setup.py build
@@ -150,8 +150,51 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          name: windows-wheels
+          name: windows-${{ matrix.ARCH }}-${{ matrix.python-version }}-wheel
           path: kvxopt/dist/*.whl
+
+
+
+  Test_and_deploy:
+    runs-on: windows-latest
+    needs: Build_wheel
+
+    strategy:
+      matrix:
+        python-version: [3.5, 3.6, 3.7, 3.8, 3.9]
+        ARCH: [x64, x86]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Checkout submodules
+        run: git submodule update --init --recursive 
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: ${{ matrix.ARCH}}
+
+      - name: Install python testing dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov coveralls twine
+
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: windows-${{ matrix.ARCH }}-${{ matrix.python-version }}-wheel
+          
+      - name: Display structure of downloaded files
+        run: ls -R
+
+      - name: Test
+        run: |
+            pip install --no-index --find-links . kvxopt
+            python -c 'from kvxopt import blas,lapack,cholmod,umfpack,klu,glpk,osqp'
+            py.test --cov=kvxopt kvxopt\tests
+
 
       - name: Publish wheels to PyPI test
         env:
