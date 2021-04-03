@@ -1,10 +1,10 @@
 env:
     global:
-        - UPLOAD_TO_WASABY=1
+        - UPLOAD_TO_WASABY=0
         # Upload to test pipy
         - UPLOAD_TO_TEST_PYPI=0
         # Upload to official pipy repo
-        - UPLOAD_TO_OFFI_PYPI=0
+        - UPLOAD_TO_OFFI_PYPI=1
         - REPO_DIR=kvxopt
         # Commit from your-project that you want to build
         - BUILD_COMMIT=1.2.6.0
