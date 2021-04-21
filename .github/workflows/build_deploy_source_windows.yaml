@@ -5,7 +5,8 @@ on:
     branches: [master]
 
 env:
-  BUILD_COMMIT: 1.2.6.0
+  BUILD_COMMIT: 1.2.6.1
+  UPLOAD_TO_WASABY: 1
   # Upload to test pipy
   UPLOAD_TO_TEST_PYPI: 0
   # Upload to official pipy repo
@@ -45,7 +46,7 @@ jobs:
 
       - name: Install libraries
         run: |
-            brew install openblas glpk gsl fftw suite-sparse
+            brew install openblas glpk gsl fftw suite-sparse osqp
 
       - name: Build 
         run: |
@@ -304,6 +305,14 @@ jobs:
             python -c 'from kvxopt import blas,lapack,cholmod,umfpack,klu,glpk,osqp'
             py.test --cov=kvxopt kvxopt\tests
 
+      - name: Upload to WASABI
+        uses: shallwefootball/s3-upload-action@master
+        with:
+          aws_key_id: ${{ secrets.AWS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
+          aws_bucket: kvxoptwheels
+          source_dir: '.'
+        if: ${{ env.UPLOAD_TO_WASABY == 1 }}
 
       - name: Publish wheels to PyPI test
         env:
