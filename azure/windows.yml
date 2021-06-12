@@ -1,0 +1,130 @@
+parameters:
+  name: ""
+  vmImage: ""
+  matrix: []
+
+jobs:
+  - job: ${{ parameters.name }}
+    pool:
+      vmImage: ${{ parameters.vmImage }}
+    variables:
+      NIGHTLY_BUILD_COMMIT: "main"
+      JUNITXML: "test-data.xml"
+      TEST_DIR: '$(Agent.WorkFolder)/tmp_for_test'
+    strategy:
+      matrix:
+        ${{ insert }}: ${{ parameters.matrix }}
+    steps:
+      - checkout: self
+        submodules: true
+
+      - task: UsePythonVersion@0
+        inputs:
+          versionSpec: $(PYTHON_VERSION)
+          addToPath: true
+          architecture: $(PYTHON_ARCH)
+        displayName: Set python version
+        condition: not(contains(variables['PYTHON_VERSION'], 'PyPy'))
+
+      - powershell: |
+          $url = "http://buildbot.pypy.org/nightly/py3.6/pypy-c-jit-latest-win32.zip"
+          $output = "pypy.zip"
+          $wc = New-Object System.Net.WebClient
+          $wc.DownloadFile($url, $output)
+          echo "downloaded $url to $output"
+          mkdir pypy3
+          Expand-Archive $output -DestinationPath pypy3
+          move pypy3/pypy-c-*/* pypy3
+          cp pypy3/pypy3.exe pypy3/python.exe
+          $pypypath = Join-Path (Get-Item .).FullName pypy3
+          $env:Path = $pypypath + ";" + $env:Path
+          setx PATH $env:Path
+          python -mensurepip
+          echo "##vso[task.prependpath]$pypypath"
+        condition: contains(variables['PYTHON_VERSION'], 'PyPy')
+        displayName: "Install PyPy pre-release"
+
+      - bash: |
+          set -e
+          echo PYTHON $PYTHON_VERSION $PYTHON_ARCH
+          echo Build Reason: $BUILD_REASON
+          python --version
+          python -c "import struct; print(struct.calcsize('P') * 8)"
+          python -m pip --version
+        displayName: Check that we have the expected version and architecture for Python
+      - bash: |
+          set -e
+          if [ "$BUILD_REASON" == "Schedule" ]; then
+            BUILD_COMMIT=$NIGHTLY_BUILD_COMMIT
+          fi
+          echo "Building kvxopt@$BUILD_COMMIT"
+          echo "##vso[task.setvariable variable=BUILD_COMMIT]$BUILD_COMMIT"
+          # Store original Python path to be able to create test_venv pointing
+          # to same Python version.
+          PYTHON_EXE=`which python`
+          echo "##vso[task.setvariable variable=PYTHON_EXE]$PYTHON_EXE"
+        displayName: Define build env variables
+      - bash: |
+          set -e
+          cd kvxopt
+          git fetch origin HEAD
+          git checkout $BUILD_COMMIT
+          git clean -fxd
+          git reset --hard
+        displayName: Checkout kvxopt commit
+
+      - powershell: |
+          choco install -y mingw --forcex86 --force --version=7.3.0
+        displayName: 'Install 32-bit mingw for 32-bit builds'
+        condition: eq(variables['BITS'], 32)
+
+      - bash: |
+          set -xe
+          pushd kvxopt
+          pip install twine wheel urllib3
+          # a bit overkill, all we really need is cython
+          python -m pip install --timeout=60 -r test_requirements.txt
+
+          # handle license
+          cp ../LICENSE_win32.txt LICENSE.txt
+
+          # handle _distributor_init.py
+          PYTHONPATH=tools python -c "import openblas_support; openblas_support.make_init('numpy')"
+
+          # Download and get the path to "openblas.a". We cannot copy it
+          # to $PYTHON_EXE's directory since that is on a different drive which
+          # mingw does not like. Instead copy it to a directory and set OPENBLAS
+          target=$(python tools/openblas_support.py)
+          mkdir -p openblas
+          echo Copying $target to openblas
+          cp $target openblas
+          echo "##vso[task.setvariable variable=OPENBLAS]openblas"
+        displayName: Prepare the build
+
+      - powershell: |
+          If ($(BITS) -eq 32) {
+              $env:CFLAGS = "-m32"
+              $env:LDFLAGS = "-m32"
+              $env:PATH = "C:\\ProgramData\\chocolatey\\lib\\mingw\\tools\\install\\mingw$(BITS)\\bin;" + $env:PATH
+              refreshenv
+          }
+          # Build the wheel
+          pushd numpy
+          python setup.py build
+          python setup.py bdist_wheel
+          twine check dist/*
+          popd
+        displayName: Build wheel
+      - bash: |
+          set -ex
+          source extra_functions.sh
+          source config.sh
+          setup_test_venv
+          python -m pip install -r kvxopt/test_requirements.txt
+          python -m pip install kvxopt/dist/kvxopt-*.whl
+          mkdir -p for_test
+          pushd for_test
+          run_tests
+          popd
+          teardown_test_venv
+        displayName: Install wheel and test

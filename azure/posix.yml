@@ -1,0 +1,86 @@
+parameters:
+  name: ""
+  vmImage: ""
+  matrix: []
+
+jobs:
+  - job: ${{ parameters.name }}
+    pool:
+      vmImage: ${{ parameters.vmImage }}
+    variables:
+      REPO_DIR: "kvxopt"
+      PLAT: "x86_64"
+      NIGHTLY_BUILD_COMMIT: "main"
+      TEST_DEPENDS: "pytest numpy"
+      JUNITXML: "test-data.xml"
+      TEST_DIR: "tmp_for_test"
+    strategy:
+      matrix:
+        ${{ insert }}: ${{ parameters.matrix }}
+
+    steps:
+      - checkout: self
+        submodules: true
+
+      - task: UsePythonVersion@0
+        inputs:
+          versionSpec: $(AZURE_PYTHON_VERSION)
+        displayName: Set python version from AZURE
+        condition: ne( coalesce (variables['AZURE_PYTHON_VERSION'], 'NONE'), 'NONE')
+
+      - task: UsePythonVersion@0
+        inputs:
+          versionSpec: $(MB_PYTHON_VERSION)
+        displayName: Set python version from MB
+        condition: eq( coalesce (variables['AZURE_PYTHON_VERSION'], 'NONE'), 'NONE')
+
+      - bash: |
+          set -e
+
+          if [ "$BUILD_REASON" == "Schedule" ]; then
+            BUILD_COMMIT=$NIGHTLY_BUILD_COMMIT
+          fi
+          echo "Building kvxopt@$BUILD_COMMIT"
+          echo "##vso[task.setvariable variable=BUILD_COMMIT]$BUILD_COMMIT"
+
+          # Platform variables used in multibuild scripts
+          if [ `uname` == 'Darwin' ]; then
+            echo "##vso[task.setvariable variable=TRAVIS_OS_NAME]osx"
+            echo "##vso[task.setvariable variable=MACOSX_DEPLOYMENT_TARGET]10.9"
+          else
+            echo "##vso[task.setvariable variable=TRAVIS_OS_NAME]linux"
+          fi
+
+          # Store original Python path to be able to create test_venv pointing
+          # to same Python version.
+          PYTHON_EXE=`which python`
+          echo "##vso[task.setvariable variable=PYTHON_EXE]$PYTHON_EXE"
+        displayName: Define build env variables
+
+      - bash: |
+          set -ex
+          echo $BUILD_COMMIT
+          
+          pip install virtualenv wheel
+
+          source multibuild/common_utils.sh
+          source multibuild/travis_steps.sh
+          source extra_functions.sh
+
+          # Setup build dependencies
+          before_install
+
+          clean_code $REPO_DIR $BUILD_COMMIT
+          ./patch_code.sh $REPO_DIR
+          build_wheel $REPO_DIR $PLAT
+        displayName: Build wheel
+
+      - bash: |
+          set -ex
+          source multibuild/common_utils.sh
+          source multibuild/travis_steps.sh
+          source extra_functions.sh
+          setup_test_venv
+          install_run $PLAT
+          teardown_test_venv
+        displayName: Install wheel and test
