@@ -4,14 +4,14 @@ schedules:
   displayName: Weekly build
   branches:
     include:
-    - main
+    - master
   always: true
 
 pr:
-- main
+- master
 
 variables:
-  BUILD_COMMIT: "main"
+  BUILD_COMMIT: "master"
 
 jobs:
   - template: azure/windows.yml

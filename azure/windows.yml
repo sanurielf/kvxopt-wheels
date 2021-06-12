@@ -8,7 +8,7 @@ jobs:
     pool:
       vmImage: ${{ parameters.vmImage }}
     variables:
-      NIGHTLY_BUILD_COMMIT: "main"
+      NIGHTLY_BUILD_COMMIT: "master"
       JUNITXML: "test-data.xml"
       TEST_DIR: '$(Agent.WorkFolder)/tmp_for_test'
     strategy:
@@ -80,51 +80,32 @@ jobs:
 
       - bash: |
           set -xe
-          pushd kvxopt
-          pip install twine wheel urllib3
-          # a bit overkill, all we really need is cython
-          python -m pip install --timeout=60 -r test_requirements.txt
+          echo $BUILD_COMMIT
 
-          # handle license
-          cp ../LICENSE_win32.txt LICENSE.txt
+          pip install virtualenv wheel 
 
-          # handle _distributor_init.py
-          PYTHONPATH=tools python -c "import openblas_support; openblas_support.make_init('numpy')"
+          source multibuild/common_utils.sh
+          source multibuild/travis_steps.sh
+          source extra_functions.sh
 
-          # Download and get the path to "openblas.a". We cannot copy it
-          # to $PYTHON_EXE's directory since that is on a different drive which
-          # mingw does not like. Instead copy it to a directory and set OPENBLAS
-          target=$(python tools/openblas_support.py)
-          mkdir -p openblas
-          echo Copying $target to openblas
-          cp $target openblas
-          echo "##vso[task.setvariable variable=OPENBLAS]openblas"
+          # Setup build dependencies
+          before_install
+
+
         displayName: Prepare the build
 
-      - powershell: |
-          If ($(BITS) -eq 32) {
-              $env:CFLAGS = "-m32"
-              $env:LDFLAGS = "-m32"
-              $env:PATH = "C:\\ProgramData\\chocolatey\\lib\\mingw\\tools\\install\\mingw$(BITS)\\bin;" + $env:PATH
-              refreshenv
-          }
-          # Build the wheel
-          pushd numpy
-          python setup.py build
-          python setup.py bdist_wheel
-          twine check dist/*
-          popd
+      - bash: |
+          clean_code $REPO_DIR $BUILD_COMMIT
+          build_wheel $REPO_DIR $PLAT
+
         displayName: Build wheel
       - bash: |
           set -ex
           source extra_functions.sh
-          source config.sh
           setup_test_venv
-          python -m pip install -r kvxopt/test_requirements.txt
           python -m pip install kvxopt/dist/kvxopt-*.whl
           mkdir -p for_test
           pushd for_test
           run_tests
           popd
-          teardown_test_venv
         displayName: Install wheel and test

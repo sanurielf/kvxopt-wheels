@@ -46,6 +46,8 @@ services: docker
 # and test containers, via docker.
 dist: xenial
 
+# osx image that enables building Apple silicon libraries
+osx_image: xcode12.2
 
 matrix:
   include:
@@ -68,6 +70,32 @@ matrix:
     - os: osx
       env:
         - MB_PYTHON_VERSION=3.9
+    
+    # OSX builds (Apple silicon)
+    - os: osx
+      env:
+        - MB_PYTHON_VERSION=2.7
+        - PLAT="arm64"
+    - os: osx
+      env:
+        - MB_PYTHON_VERSION=3.5
+        - PLAT="arm64"
+    - os: osx
+      env:
+        - MB_PYTHON_VERSION=3.6
+        - PLAT="arm64"
+    - os: osx
+      env:
+        - MB_PYTHON_VERSION=3.7
+        - PLAT="arm64"
+    - os: osx
+      env:
+        - MB_PYTHON_VERSION=3.8
+        - PLAT="arm64"
+    - os: osx
+      env:
+        - MB_PYTHON_VERSION=3.9
+        - PLAT="arm64"
 
     # 64-bit linux builds
     - os: linux
