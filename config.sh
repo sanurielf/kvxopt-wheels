@@ -15,6 +15,12 @@ else
     export KVXOPT_BUILD_OSQP=1
 fi
 
+# We use the build_prefix from homebrew for MacOS
+if [ -n "${IS_MACOS}" ]; then
+    BUILD_PREFIX="${BUILD_PREFIX:-$(brew --prefix)}"
+else
+    BUILD_PREFIX="${BUILD_PREFIX:-/usr/local}"
+fi
 
 
 TESTS_DIR="$(pwd)/kvxopt/tests"
@@ -54,7 +60,11 @@ function pre_build {
     export KVXOPT_GLPK_LIB_DIR=${BUILD_PREFIX}/lib
     export KVXOPT_GLPK_INC_DIR=${BUILD_PREFIX}/include
     export KVXOPT_GSL_LIB_DIR=${BUILD_PREFIX}/lib
-    export KVXOPT_GSL_INC_DIR=${BUILD_PREFIX}/include/gsl
+    if [ -n "${IS_MACOS}" ]; then
+        export KVXOPT_GSL_INC_DIR=${BUILD_PREFIX}/include
+    else
+        export KVXOPT_GSL_INC_DIR=${BUILD_PREFIX}/include/gsl    
+    fi
     export KVXOPT_FFTW_LIB_DIR=${BUILD_PREFIX}/lib
     export KVXOPT_FFTW_INC_DIR=${BUILD_PREFIX}/include
     export KVXOPT_DSDP_LIB_DIR=${BUILD_PREFIX}/lib
