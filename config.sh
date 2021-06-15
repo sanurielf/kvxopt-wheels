@@ -43,7 +43,12 @@ function pre_build {
     fi
 
     # Build dependencies
-    if [ -z "${IS_MACOS}" ]; then
+    if [ -n "$IS_MACOS" ]; then
+        build_openblas
+        export KVXOPT_BLAS_LIB=openblas
+        export KVXOPT_LAPACK_LIB=openblas
+        export KVXOPT_BLAS_LIB_DIR=${BUILD_PREFIX}/lib
+    else 
         build_openblas  # defined in multibuild/library_builders.sh
         export KVXOPT_BLAS_LIB=openblas
         export KVXOPT_LAPACK_LIB=openblas
@@ -51,11 +56,11 @@ function pre_build {
     fi
 
 
+    if [ "${KVXOPT_BUILD_GSL}" == "1" ]; then build_gsl; fi
     if [ "${KVXOPT_BUILD_OSQP}" == "1" ]; then build_osqp; fi
     if [ "${KVXOPT_BUILD_DSDP}" == "1" ]; then build_dsdp; fi
     if [ "${KVXOPT_BUILD_FFTW}" == "1" ]; then build_fftw; fi
     if [ "${KVXOPT_BUILD_GLPK}" == "1" ]; then build_glpk; fi
-    if [ "${KVXOPT_BUILD_GSL}" == "1" ]; then build_gsl; fi
 
     export KVXOPT_GLPK_LIB_DIR=${BUILD_PREFIX}/lib
     export KVXOPT_GLPK_INC_DIR=${BUILD_PREFIX}/include
