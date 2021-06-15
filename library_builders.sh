@@ -17,7 +17,7 @@ function get_cmake_320 {
   # Install cmake == 3.2
   local cmake=cmake
   if [ -n "$IS_MACOS" ]; then
-    brew reinstall cmake > /dev/null
+    brew install cmake > /dev/null
   else
     curl -L -o cmake.sh https://github.com/Kitware/CMake/releases/download/v3.20.0/cmake-3.20.0-linux-x86_64.sh
     sh cmake.sh --prefix=/usr/local/ --exclude-subdir
@@ -29,7 +29,7 @@ function build_dsdp {
   if [ -e dsdp-stamp ]; then return; fi
   fetch_unpack http://www.mcs.anl.gov/hs/software/DSDP/DSDP${DSDP_VERSION}.tar.gz
   check_sha256sum archives/DSDP${DSDP_VERSION}.tar.gz ${DSDP_SHA256}
-  if [ -n "${IS_OSX}" ] && [ $PLAT != arm64 ]; then
+  if [  -n "$IS_MACOS" ]; then
     (cd DSDP${DSDP_VERSION} \
         && patch -p1 < ../dsdp.patch \
         && make PREFIX=${BUILD_PREFIX} IS_OSX=1 DSDPROOT=`pwd` install)
@@ -42,64 +42,76 @@ function build_dsdp {
   touch dsdp-stamp
 }
 
+function build_openblas_os {
+    if [ -e openblas-stamp ]; then return; fi
+    if [ -n "$IS_MACOS" ]; then
+        brew install openblas
+        brew link --force openblas
+    else
+        mkdir -p $ARCHIVE_SDIR
+        local plat=${1:-${PLAT:-x86_64}}
+        local tar_path=$(abspath $(openblas_get $plat))
+        (cd / && tar zxf $tar_path)
+    fi
+    touch openblas-stamp
+}
+
+
 function build_fftw {
   if [ -e fftw-stamp ]; then return; fi
-  if [ -n "${IS_OSX}" ] && [ $PLAT != arm64 ]; then
-      brew reinstall fftw
-  else
+
   fetch_unpack http://www.fftw.org/fftw-${FFTW_VERSION}.tar.gz
   check_sha256sum archives/fftw-${FFTW_VERSION}.tar.gz ${FFTW_SHA256}
   (cd fftw-${FFTW_VERSION} \
       && ./configure --prefix=${BUILD_PREFIX} --enable-shared \
       && make \
-      && make install)
-fi
+      && make install
+      && cd ..
+      && rm -rf fftw-${FFTW_VERSION})
   touch fftw-stamp
 }
 
 function build_glpk {
   if [ -e glpk-stamp ]; then return; fi
-  if [ -n "${IS_OSX}" ] && [ $PLAT != arm64 ]; then
-      brew reinstall glpk
-  else
+
   fetch_unpack http://ftp.gnu.org/gnu/glpk/glpk-${GLPK_VERSION}.tar.gz
   check_sha256sum archives/glpk-${GLPK_VERSION}.tar.gz ${GLPK_SHA256}
   (cd glpk-${GLPK_VERSION} \
       && ./configure --prefix=${BUILD_PREFIX} \
       && make \
-      && make install)
-fi
+      && make install
+      && cd ..
+      && rm -rf glpk-${GLPK_VERSION})
   touch glpk-stamp
 }
 
 function build_gsl {
   if [ -e gsl-stamp ]; then return; fi
-  if [ -n "${IS_OSX}" ] && [ $PLAT != arm64 ]; then
-      brew reinstall gsl
-  else
+
   fetch_unpack http://ftp.download-by.net/gnu/gnu/gsl/gsl-${GSL_VERSION}.tar.gz
   check_sha256sum archives/gsl-${GSL_VERSION}.tar.gz ${GSL_SHA256}
   (cd gsl-${GSL_VERSION} \
       && ./configure --prefix=${BUILD_PREFIX} \
       && make \
-      && make install)
-fi
+      && make install
+      && cd ..
+      && rm -rf gsl-${GSL_VERSION})
   touch gsl-stamp
 }
 
 function build_osqp {
   if [ -e osqp-stamp ]; then return; fi
-  if [ -n "${IS_OSX}" ] && [ $PLAT != arm64 ]; then
-      brew reinstall osqp
-  else
-    get_modern_cmake
-    git clone --recursive https://github.com/oxfordcontrol/osqp.git
-    (cd osqp \
-        && git checkout v${OSQP_VERSION} \
-        && mkdir build \
-        && cd build \
-        && cmake -DCMAKE_INSTALL_PREFIX=$BUILD_PREFIX .. \
-        && cmake --build . --target install)
-fi
+
+  get_modern_cmake
+  git clone --recursive https://github.com/oxfordcontrol/osqp.git
+  (cd osqp \
+      && git checkout v${OSQP_VERSION} \
+      && mkdir build \
+      && cd build \
+      && cmake -DCMAKE_INSTALL_PREFIX=$BUILD_PREFIX .. \
+      && cmake --build . --target install
+      && cd ..
+      && rm -rf osqp)
+
   touch osqp-stamp
 }
