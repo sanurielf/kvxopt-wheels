@@ -18,7 +18,7 @@ type fetch_unpack &> /dev/null || source multibuild/library_builders.sh
 function get_cmake_320 {
   # Install cmake == 3.2
   local cmake=cmake
-  if [ -n "$IS_MACOS" ]; then
+  if [ -n "${IS_MACOS}" ]; then
     brew install cmake > /dev/null
   else
     curl -L -o cmake.sh https://github.com/Kitware/CMake/releases/download/v3.20.0/cmake-3.20.0-linux-x86_64.sh
@@ -31,7 +31,7 @@ function build_dsdp {
   if [ -e dsdp-stamp ]; then return; fi
   fetch_unpack http://www.mcs.anl.gov/hs/software/DSDP/DSDP${DSDP_VERSION}.tar.gz
   check_sha256sum archives/DSDP${DSDP_VERSION}.tar.gz ${DSDP_SHA256}
-  if [  -n "$IS_MACOS" ]; then
+  if [  -n "${IS_MACOS}" ]; then
     (cd DSDP${DSDP_VERSION} \
         && patch -p1 < ../dsdp.patch \
         && make PREFIX=${BUILD_PREFIX} IS_OSX=1 DSDPROOT=`pwd` install)
@@ -85,7 +85,7 @@ function openblas_get_osx {
 
 function build_openblas_osx2 {
     if [ -e openblas-stamp ]; then return; fi
-    if [ -n "$IS_MACOS" ]; then
+    if [ -n "${IS_MACOS}" ]; then
         brew install openblas
         brew link --force openblas
     else
@@ -96,7 +96,6 @@ function build_openblas_osx2 {
     fi
     touch openblas-stamp
 }
-
 
 
 function build_fftw {
@@ -132,8 +131,18 @@ function build_gsl {
 
   fetch_unpack http://ftp.download-by.net/gnu/gnu/gsl/gsl-${GSL_VERSION}.tar.gz
   check_sha256sum archives/gsl-${GSL_VERSION}.tar.gz ${GSL_SHA256}
+  local old_cflags=$CFLAGS
+  local old_cppflags=$CPPFLAGS
+  local old_ldflags=$LDFLAGS
+  local old_libs=$LIBS
 
-  if [ -n "$IS_MACOS" ]; then
+
+  if [ -n "${IS_MACOS}" ]; then
+      export CFLAGS+=" -I/usr/local/opt/openblas/include"
+      export CPPFLAGS+=" -I/usr/local/opt/openblas/include"
+      export LDFLAGS+=" -L/usr/local/opt/openblas/lib"
+      export LIBS+=" -lopenblas"
+
       (cd gsl-${GSL_VERSION} \
       && ./configure --prefix=${BUILD_PREFIX} \
       && make \
@@ -148,6 +157,13 @@ function build_gsl {
       && cd .. \
       && rm -rf gsl-${GSL_VERSION})
   fi
+
+  # restore flags
+  export CFLAGS=$old_cflags
+  export CPPFLAGS=$old_cppflags
+  export LDFLAGS=$old_ldflags
+  export LIBS=$old_libs
+
   touch gsl-stamp
 }
 
