@@ -3,9 +3,9 @@
 
 # Configure which optional extensions to build
 export KVXOPT_BUILD_DSDP=0
-export KVXOPT_BUILD_FFTW=1
+export KVXOPT_BUILD_FFTW=0
 export KVXOPT_BUILD_GLPK=1
-export KVXOPT_BUILD_GSL=1
+export KVXOPT_BUILD_GSL=0
 export OPENBLAS_VERSION=0.3.13
 
 # OSQP cannot be build in manylinux1 because Cmake>=3.2
@@ -43,16 +43,19 @@ function pre_build {
     fi
 
     # Build dependencies
-    if [  -n "$IS_MACOS" ]; then
+    if [ -n "${IS_MACOS}" ]; then
         build_openblas_osx
         export KVXOPT_BLAS_LIB=openblas
         export KVXOPT_LAPACK_LIB=openblas
-        export KVXOPT_BLAS_LIB_DIR=${BUILD_PREFIX}/lib
+        export KVXOPT_BLAS_LIB_DIR=$(abspath openblas-${PLAT}/lib)
+        export KVXOPT_GSL_LIB_DIR=$(abspath openblas-${PLAT}/lib)
     else 
         build_openblas  # defined in multibuild/library_builders.sh
         export KVXOPT_BLAS_LIB=openblas
         export KVXOPT_LAPACK_LIB=openblas
         export KVXOPT_BLAS_LIB_DIR=${BUILD_PREFIX}/lib
+        export KVXOPT_GSL_LIB_DIR=${BUILD_PREFIX}/lib
+
     fi
 
 
@@ -64,12 +67,6 @@ function pre_build {
 
     export KVXOPT_GLPK_LIB_DIR=${BUILD_PREFIX}/lib
     export KVXOPT_GLPK_INC_DIR=${BUILD_PREFIX}/include
-    export KVXOPT_GSL_LIB_DIR=${BUILD_PREFIX}/lib
-    if [ -n "${IS_MACOS}" ]; then
-        export KVXOPT_GSL_INC_DIR=${BUILD_PREFIX}/include
-    else
-        export KVXOPT_GSL_INC_DIR=${BUILD_PREFIX}/include/gsl    
-    fi
     export KVXOPT_FFTW_LIB_DIR=${BUILD_PREFIX}/lib
     export KVXOPT_FFTW_INC_DIR=${BUILD_PREFIX}/include
     export KVXOPT_DSDP_LIB_DIR=${BUILD_PREFIX}/lib

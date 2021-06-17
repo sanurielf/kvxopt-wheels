@@ -12,13 +12,17 @@ OSQP_VERSION="0.6.2"
 OPENBLAS_VERSION="0.3.10"
 OPENBLAS_SHA256="0484d275f87e9b8641ff2eecaa9df2830cbe276ac79ad80494822721de6e1693"
 
+OPENBLAS_LIB_URL_OSX="https://anaconda.org/conda-forge/openblas"
+OPENBLAS_VERSION_OSX="0.3.15"
+OPENBLAS_VERSION_OSX_x86_64="h1efccf2_1"
+OPENBLAS_VERSION_OSX_arm64="hdb1f584_1"
 
 type fetch_unpack &> /dev/null || source multibuild/library_builders.sh
 
 function get_cmake_320 {
   # Install cmake == 3.2
   local cmake=cmake
-  if [ -n "$IS_MACOS" ]; then
+  if [ -n "${IS_MACOS}" ]; then
     brew install cmake > /dev/null
   else
     curl -L -o cmake.sh https://github.com/Kitware/CMake/releases/download/v3.20.0/cmake-3.20.0-linux-x86_64.sh
@@ -31,7 +35,7 @@ function build_dsdp {
   if [ -e dsdp-stamp ]; then return; fi
   fetch_unpack http://www.mcs.anl.gov/hs/software/DSDP/DSDP${DSDP_VERSION}.tar.gz
   check_sha256sum archives/DSDP${DSDP_VERSION}.tar.gz ${DSDP_SHA256}
-  if [  -n "$IS_MACOS" ]; then
+  if [  -n "${IS_MACOS}" ]; then
     (cd DSDP${DSDP_VERSION} \
         && patch -p1 < ../dsdp.patch \
         && make PREFIX=${BUILD_PREFIX} IS_OSX=1 DSDPROOT=`pwd` install)
@@ -44,15 +48,19 @@ function build_dsdp {
   touch dsdp-stamp
 }
 
-function build_openblas_osx {
+function build_openblas_osx2 {
   if [ -e openblas_osx-stamp ]; then return; fi
+
+    (sudo conda install -c conda-forge openblas)
+
+
   
-  if [ "${PLAT}" == "arm64" ]; then
-    brew uninstall openblas
-  fi
-  (brew install openblas \
-    && brew link --force openblas)
-  
+  # if [ "${PLAT}" == "arm64" ]; then
+  #   (brew uninstall openblas \
+  #   && brew install -s openblas)
+  # else
+  #   (brew install openblas)
+  # fi
 
   touch openblas_osx-stamp
   
@@ -66,12 +74,25 @@ function openblas_get_osx {
     local plat=${1:-$}
     # qual could be 64 to get a 64-bit version
     local qual=$2
-    local prefix=openblas${qual}-v$OPENBLAS_VERSION
-    local manylinux=manylinux${MB_ML_VER:-1}
-    local fname="$prefix-${manylinux}_${plat}.tar.gz"
+    # https://anaconda.org/conda-forge/openblas/0.3.15/download/osx-arm64/openblas-0.3.15-openmp_hdb1f584_1.tar.bz2
+    local prefix=openblas${qual}-$OPENBLAS_VERSION_OSX
+    if [ "$PLAT" == "arm64" ]; then
+      local platix=openmp_$OPENBLAS_VERSION_OSX_arm64
+      local plat2=osx-arm64
+    else
+      local platix=openmp_$OPENBLAS_VERSION_OSX_x86_64
+      local plat2=osx-64
+    fi
+
+
+
+    local fname="$prefix-${platix}.tar.bz2"
+
+
+
     local out_fname="${ARCHIVE_SDIR}/$fname"
     if [ ! -e "$out_fname" ]; then
-        local webname=${OPENBLAS_LIB_URL}/v${OPENBLAS_VERSION}/download/${fname}
+        local webname=${OPENBLAS_LIB_URL_OSX}/${OPENBLAS_VERSION_OSX}/download/${plat2}/${fname}
         curl -L "$webname" > $out_fname || exit 1
         # make sure it is not an HTML document of download failure
         local ok=$(file $out_fname | grep "HTML document")
@@ -83,20 +104,19 @@ function openblas_get_osx {
     echo "$out_fname"
 }
 
-function build_openblas_osx2 {
+function build_openblas_osx {
     if [ -e openblas-stamp ]; then return; fi
-    if [ -n "$IS_MACOS" ]; then
-        brew install openblas
-        brew link --force openblas
-    else
-        mkdir -p $ARCHIVE_SDIR
-        local plat=${1:-${PLAT:-x86_64}}
-        local tar_path=$(abspath $(openblas_get $plat))
-        (cd / && tar zxf $tar_path)
-    fi
+
+    mkdir -p $ARCHIVE_SDIR
+    local plat=${1:-${PLAT:-x86_64}}
+    local tar_path=$(abspath $(openblas_get_osx $plat))
+    (mkdir openblas-${PLAT} \
+     && cd openblas-${PLAT} \
+     && tar xjvf $tar_path \
+     && pwd && ls)
+
     touch openblas-stamp
 }
-
 
 
 function build_fftw {
@@ -132,8 +152,18 @@ function build_gsl {
 
   fetch_unpack http://ftp.download-by.net/gnu/gnu/gsl/gsl-${GSL_VERSION}.tar.gz
   check_sha256sum archives/gsl-${GSL_VERSION}.tar.gz ${GSL_SHA256}
+  local old_cflags=$CFLAGS
+  local old_cppflags=$CPPFLAGS
+  local old_ldflags=$LDFLAGS
+  local old_libs=$LIBS
 
-  if [ -n "$IS_MACOS" ]; then
+
+  if [ -n "${IS_MACOS}" ]; then
+      export CFLAGS+=" -I/usr/local/opt/openblas/include"
+      export CPPFLAGS+=" -I/usr/local/opt/openblas/include"
+      export LDFLAGS+=" -L/usr/local/opt/openblas/lib"
+      export LIBS+=" -lopenblas"
+
       (cd gsl-${GSL_VERSION} \
       && ./configure --prefix=${BUILD_PREFIX} \
       && make \
@@ -148,6 +178,13 @@ function build_gsl {
       && cd .. \
       && rm -rf gsl-${GSL_VERSION})
   fi
+
+  # restore flags
+  export CFLAGS=$old_cflags
+  export CPPFLAGS=$old_cppflags
+  export LDFLAGS=$old_ldflags
+  export LIBS=$old_libs
+
   touch gsl-stamp
 }
 
