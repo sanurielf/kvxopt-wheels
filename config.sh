@@ -47,16 +47,14 @@ function pre_build {
         build_openblas_osx
         export KVXOPT_BLAS_LIB=openblas
         export KVXOPT_LAPACK_LIB=openblas
-        export KVXOPT_BLAS_LIB_DIR=/usr/local/opt/openblas/lib
-        export KVXOPT_GSL_LIB_DIR=/usr/local/opt/openblas/lib
-        export KVXOPT_GSL_INC_DIR=/usr/local/opt/openblas/include
+        export KVXOPT_BLAS_LIB_DIR=$(abspath openblas-${PLAT}/lib)
+        export KVXOPT_GSL_LIB_DIR=$(abspath openblas-${PLAT}/lib)
     else 
         build_openblas  # defined in multibuild/library_builders.sh
         export KVXOPT_BLAS_LIB=openblas
         export KVXOPT_LAPACK_LIB=openblas
         export KVXOPT_BLAS_LIB_DIR=${BUILD_PREFIX}/lib
         export KVXOPT_GSL_LIB_DIR=${BUILD_PREFIX}/lib
-        export KVXOPT_GSL_INC_DIR=${BUILD_PREFIX}/include/gsl    
 
     fi
 
