@@ -3,9 +3,9 @@
 
 # Configure which optional extensions to build
 export KVXOPT_BUILD_DSDP=0
-export KVXOPT_BUILD_FFTW=0
+export KVXOPT_BUILD_FFTW=1
 export KVXOPT_BUILD_GLPK=1
-export KVXOPT_BUILD_GSL=0
+export KVXOPT_BUILD_GSL=1
 export OPENBLAS_VERSION=0.3.13
 
 # OSQP cannot be build in manylinux1 because Cmake>=3.2
@@ -15,12 +15,11 @@ else
     export KVXOPT_BUILD_OSQP=1
 fi
 
-# We use the build_prefix from homebrew for MacOS
-if [ -n "${IS_MACOS}" ]; then
-    BUILD_PREFIX="${BUILD_PREFIX:-$(brew --prefix)}"
-else
-    BUILD_PREFIX="${BUILD_PREFIX:-/usr/local}"
-fi
+
+
+ROOT_DIR=$(dirname $(dirname "${BASH_SOURCE[0]}"))
+source ${ROOT_DIR}/multibuild/common_utils.sh
+source ${ROOT_DIR}/gfortran-install/gfortran_utils.sh
 
 
 TESTS_DIR="$(pwd)/kvxopt/tests"
@@ -42,21 +41,21 @@ function pre_build {
         touch suitesparse-stamp
     fi
 
+    # Get and install gfortran
+    install_gfortran
+
     # Build dependencies
     if [ -n "${IS_MACOS}" ]; then
-        build_openblas_osx
-        export KVXOPT_BLAS_LIB=openblas
-        export KVXOPT_LAPACK_LIB=openblas
-        export KVXOPT_BLAS_LIB_DIR=$(abspath openblas-${PLAT}/lib)
-        export KVXOPT_GSL_LIB_DIR=$(abspath openblas-${PLAT}/lib)
+        build_openblas_osx2
     else 
         build_openblas  # defined in multibuild/library_builders.sh
-        export KVXOPT_BLAS_LIB=openblas
-        export KVXOPT_LAPACK_LIB=openblas
-        export KVXOPT_BLAS_LIB_DIR=${BUILD_PREFIX}/lib
-        export KVXOPT_GSL_LIB_DIR=${BUILD_PREFIX}/lib
-
     fi
+
+    export KVXOPT_BLAS_LIB_DIR=${BUILD_PREFIX}/lib
+    export KVXOPT_GSL_LIB_DIR=${BUILD_PREFIX}/lib
+    export KVXOPT_BLAS_LIB=openblas
+    export KVXOPT_LAPACK_LIB=openblas
+
 
 
     if [ "${KVXOPT_BUILD_GSL}" == "1" ]; then build_gsl; fi
