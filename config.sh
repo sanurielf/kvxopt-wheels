@@ -3,9 +3,9 @@
 
 # Configure which optional extensions to build
 export KVXOPT_BUILD_DSDP=0
-export KVXOPT_BUILD_FFTW=1
-export KVXOPT_BUILD_GLPK=1
-export KVXOPT_BUILD_GSL=1
+export KVXOPT_BUILD_FFTW=0
+export KVXOPT_BUILD_GLPK=0
+export KVXOPT_BUILD_GSL=0
 export OPENBLAS_VERSION=0.3.13
 
 # OSQP cannot be build in manylinux1 because Cmake>=3.2

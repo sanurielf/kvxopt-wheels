@@ -84,3 +84,17 @@ jobs:
           install_run $PLAT
           teardown_test_venv
         displayName: Install wheel and test
+
+      - bash: |
+          set -ex
+          pip install boto3
+
+          for file in wheelhouse/*.whl
+          do
+            python s3_upload.py "$file"
+          done
+        env:
+          WASABI_KEY_ID: $(WASABI_KEY_ID)
+          WASABI_ACCESS_KEY: $(WASABI_ACCESS_KEY)
+        displayName: Upload to Wasabi
+
