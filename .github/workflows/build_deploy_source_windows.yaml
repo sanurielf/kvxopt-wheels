@@ -6,7 +6,7 @@ on:
 
 env:
   BUILD_COMMIT: 1.2.6.1
-  UPLOAD_TO_WASABY: 1
+  UPLOAD_TO_WASABY: 0
   # Upload to test pipy
   UPLOAD_TO_TEST_PYPI: 0
   # Upload to official pipy repo
@@ -160,8 +160,8 @@ jobs:
       KVXOPT_BUILD_DSDP: 0
       KVXOPT_MSVC: 1
       KVXOPT_BUILD_OSQP: 1
-      SUITESPARSE_VERSION: 5.9.0
-      SUITESPARSE_SHA256: 7bdd4811f1cf0767c5fdb5e435817fdadee50b0acdb598f4882ae7b8291a7f24
+      SUITESPARSE_VERSION: 5.10.1
+      SUITESPARSE_SHA256: acb4d1045f48a237e70294b950153e48dce5b5f9ca8190e86c2b8c54ce00a7ee
       OPENBLAS_VERSION: 0.3.10
 
 
@@ -292,7 +292,7 @@ jobs:
       - name: Install python testing dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest pytest-cov coveralls twine
+          pip install pytest pytest-cov coveralls twine numpy
 
 
       - uses: actions/download-artifact@v2
@@ -306,12 +306,15 @@ jobs:
             py.test --cov=kvxopt kvxopt\tests
 
       - name: Upload to WASABI
-        uses: shallwefootball/s3-upload-action@master
-        with:
-          aws_key_id: ${{ secrets.AWS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
-          aws_bucket: kvxoptwheels
-          source_dir: '.'
+        env:
+          WASABI_KEY_ID: ${{ secrets.AWS_KEY_ID }}
+          WASABI_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          pip install boto3
+
+          for /r %%f in (*.whl) do python s3_upload.py %%f
+
+        shell: cmd
         if: ${{ env.UPLOAD_TO_WASABY == 1 }}
 
       - name: Publish wheels to PyPI test

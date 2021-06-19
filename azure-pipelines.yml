@@ -11,9 +11,16 @@ pr:
 - master
 
 variables:
-  BUILD_COMMIT: "master"
-
+  BUILD_COMMIT: "1.2.6.1"
+  UPLOAD_TO_WASABY: 1
+  # Upload to test pipy
+  UPLOAD_TO_TEST_PYPI: 0
+  # Upload to official pipy repo
+  UPLOAD_TO_OFFI_PYPI: 0
+  
 jobs:
+
+
   - template: azure/posix.yml
     parameters:
       name: linux
@@ -29,7 +36,7 @@ jobs:
         py_3.6_64_manylinux2014:
           MB_PYTHON_VERSION: "3.6"
           MB_ML_VER: "2014"
-          
+
         py_3.7_64manylinux1:
           MB_PYTHON_VERSION: "3.7"
           MB_ML_VER: "1"
@@ -39,7 +46,7 @@ jobs:
         py_3.7_64_manylinux2014:
           MB_PYTHON_VERSION: "3.7"
           MB_ML_VER: "2014"
-          
+
         py_3.8_64manylinux1:
           MB_PYTHON_VERSION: "3.8"
           MB_ML_VER: "1"
@@ -49,7 +56,7 @@ jobs:
         py_3.8_64_manylinux2014:
           MB_PYTHON_VERSION: "3.8"
           MB_ML_VER: "2014"
-          
+
         py_3.9_64manylinux1:
           MB_PYTHON_VERSION: "3.9"
           MB_ML_VER: "1"
@@ -59,7 +66,7 @@ jobs:
         py_3.9_64_manylinux2014:
           MB_PYTHON_VERSION: "3.9"
           MB_ML_VER: "2014"
-                  
+
 
         # 32-bit linux builds
         py_3.6_32manylinux1:

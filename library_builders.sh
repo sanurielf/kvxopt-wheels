@@ -19,9 +19,13 @@ OPENBLAS_POSTFIX_OSX_x86_64="macosx_10_9_x86_64-gf_1becaaa"
 OPENBLAS_VERSION_OSX_arm64="62-gaf2b0d02"
 OPENBLAS_POSTFIX_OSX_arm64="macosx_11_0_arm64-gf_f26990f"
 
+OPENBLAS_LIB_URL_WIN="https://github.com/xianyi/OpenBLAS/releases/download"
+OPENBLAS_VERSION_WIN="0.3.10"
+OPENBLAS_SHA256_WIN32="7eab2be38e4c79f0ce496e7cb3ae28be457aef1b21e70eb7e32147b479b7bb57"
+OPENBLAS_SHA256_WIN64="a307629479260ebfed057a3fc466d2be83a2bb594739a99c06ec830173273135"
+
+
 type fetch_unpack &> /dev/null || source multibuild/library_builders.sh
-
-
 
 
 function get_cmake_320 {
@@ -53,21 +57,6 @@ function build_dsdp {
   touch dsdp-stamp
 }
 
-function build_openblas_osx2 {
-  if [ -e openblas_osx-stamp ]; then return; fi
-
-  
-  if [ "${PLAT}" == "arm64" ]; then
-    (brew uninstall openblas \
-    && brew install -s -v openblas)
-  else
-    (brew install openblas)
-  fi
-
-  touch openblas_osx-stamp
-  
-}
-
 function openblas_get_osx {
     # Get an openblas compiled library from
     # https://anaconda.org/multibuild-wheels-staging/openblas-libs
@@ -93,7 +82,6 @@ function openblas_get_osx {
     fi
 
 
-
     local fname="$prefix-$platix.tar.gz"
 
     local out_fname="${ARCHIVE_SDIR}/$fname"
@@ -103,7 +91,7 @@ function openblas_get_osx {
         # make sure it is not an HTML document of download failure
         local ok=$(file $out_fname | grep "HTML document")
         if [ -n "$ok" ]; then
-            echo Fetching "${OPENBLAS_LIB_URL}/$fname" failed;
+            echo Fetching "${OPENBLAS_LIB_URL_OSX}/$fname" failed;
             exit 1;
         fi
     fi
@@ -119,6 +107,52 @@ function build_openblas_osx2 {
     (cd / \
      && tar xzvf $tar_path \
      && pwd && ls)
+
+    touch openblas-stamp
+}
+
+function openblas_get_windows {
+    # Get an openblas compiled library from
+    # https://github.com/xianyi/OpenBLAS/releases
+    # The general form of the link is (under the URL above)
+    # https://github.com/xianyi/OpenBLAS/releases/download/v0.3.13/OpenBLAS-0.3.13-x64.zip
+
+    local plat=${1:-$}
+
+    local fname="OpenBLAS-${OPENBLAS_VERSION_WIN}-x${plat}.zip"
+    
+
+    local out_fname="${ARCHIVE_SDIR}/$fname"
+    if [ ! -e "$out_fname" ]; then
+        local webname=${OPENBLAS_LIB_URL_WIN}/v${OPENBLAS_VERSION_WIN}/${fname}
+        curl -L "$webname" > $out_fname || exit 1
+        # make sure it is not an HTML document of download failure
+        local ok=$(file $out_fname | grep "HTML document")
+        if [ -n "$ok" ]; then
+            echo Fetching "${OPENBLAS_LIB_URL_WIN}/$fname" failed;
+            exit 1;
+        fi
+    fi
+    echo "$out_fname"
+}
+
+function build_openblas_windows {
+    if [ -e openblas-stamp ]; then return; fi
+
+    mkdir -p $ARCHIVE_SDIR
+    local plat=${1:-${PLAT:-32}}
+    local zip_path=$(abspath $(openblas_get_windows $plat))
+
+    cd ${ARCHIVE_SDIR}    
+    if [ "$plat" == "32" ]; then
+      echo "${OPENBLAS_SHA256_WIN32}  OpenBLAS-${OPENBLAS_VERSION_WIN}-${plat}.zip" > OpenBLAS.sha256
+    else
+      echo "${OPENBLAS_SHA256_WIN64}  OpenBLAS-${OPENBLAS_VERSION_WIN}-${plat}.zip" > OpenBLAS.sha256
+    fi
+    sha256sum -c OpenBLAS.sha256
+    mkdir OpenBLAS
+    unzip OpenBLAS-${OPENBLAS_VERSION_WIN}-${plat}.zip -d OpenBLAS/
+
 
     touch openblas-stamp
 }
@@ -157,38 +191,14 @@ function build_gsl {
 
   fetch_unpack http://ftp.download-by.net/gnu/gnu/gsl/gsl-${GSL_VERSION}.tar.gz
   check_sha256sum archives/gsl-${GSL_VERSION}.tar.gz ${GSL_SHA256}
-  local old_cflags=$CFLAGS
-  local old_cppflags=$CPPFLAGS
-  local old_ldflags=$LDFLAGS
-  local old_libs=$LIBS
 
+  (cd gsl-${GSL_VERSION} \
+  && ./configure --prefix=${BUILD_PREFIX}\
+  && make \
+  && make install \
+  && cd .. \
+  && rm -rf gsl-${GSL_VERSION})
 
-  if [ -n "${IS_MACOS}" ]; then
-      export CFLAGS+=" -I/usr/local/opt/openblas/include"
-      export CPPFLAGS+=" -I/usr/local/opt/openblas/include"
-      export LDFLAGS+=" -L/usr/local/opt/openblas/lib"
-      export LIBS+=" -lopenblas"
-
-      (cd gsl-${GSL_VERSION} \
-      && ./configure --prefix=${BUILD_PREFIX} \
-      && make \
-      && make install \
-      && cd .. \
-      && rm -rf gsl-${GSL_VERSION})
-  else
-      (cd gsl-${GSL_VERSION} \
-      && ./configure --prefix=${BUILD_PREFIX}\
-      && make \
-      && make install \
-      && cd .. \
-      && rm -rf gsl-${GSL_VERSION})
-  fi
-
-  # restore flags
-  export CFLAGS=$old_cflags
-  export CPPFLAGS=$old_cppflags
-  export LDFLAGS=$old_ldflags
-  export LIBS=$old_libs
 
   touch gsl-stamp
 }

@@ -1,5 +1,8 @@
 # Define custom utilities
-# Test for OSX with [ -n "$IS_OSX" ]
+
+if [ $(uname) == "Linux" ]; then IS_LINUX=1; fi
+
+
 
 # Configure which optional extensions to build
 export KVXOPT_BUILD_DSDP=0
@@ -30,8 +33,6 @@ function pre_build {
     # Any stuff that you need to do before you start building the wheels
     # Runs in the root directory of this repository.
 
-
-
     # Download SuiteSparse
     if [ ! -e suitesparse-stamp ]; then
         mkdir -p archives
@@ -42,12 +43,12 @@ function pre_build {
     fi
 
     # Get and install gfortran
-    install_gfortran
 
     # Build dependencies
     if [ -n "${IS_MACOS}" ]; then
+        install_gfortran
         build_openblas_osx2
-    else 
+    else
         build_openblas  # defined in multibuild/library_builders.sh
     fi
 
