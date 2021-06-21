@@ -93,9 +93,30 @@ jobs:
           do
             python s3_upload.py "$file"
           done
-        condition: eq(variables['AZURE_PYTHON_VERSION'], 1)
+        condition: eq(variables['UPLOAD_TO_WASABY'], 1)
         env:
           WASABI_KEY_ID: $(WASABI_KEY_ID)
           WASABI_ACCESS_KEY: $(WASABI_ACCESS_KEY)
         displayName: Upload to Wasabi
+
+      - bash: |
+          set -ex
+          pip install twine
+          twine upload --repository testpypi wheelhouse/*.whl
+        condition: eq(variables['UPLOAD_TO_TEST_PYPI'], 1)
+        env:
+          TWINE_USERNAME: $(PYPI_TEST_USERNAME)
+          TWINE_PASSWORD: $(PYPI_TEST_PASSWORD)
+        displayName: Publish wheels to PyPI test
+
+      - bash: |
+          set -ex
+          pip install twine
+          twine upload wheelhouse/*.whl
+        condition: eq(variables['UPLOAD_TO_OFFI_PYPI'], 1)
+        env:
+          TWINE_USERNAME: $(PYPI_USERNAME)
+          TWINE_PASSWORD: $(PYPI_PASSWORD)
+        displayName: Publish wheels to PyPI
+
 
