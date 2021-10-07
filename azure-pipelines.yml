@@ -67,6 +67,16 @@ jobs:
           MB_PYTHON_VERSION: "3.9"
           MB_ML_VER: "2014"
 
+        py_3.10_64manylinux1:
+          MB_PYTHON_VERSION: "3.10"
+          MB_ML_VER: "1"
+        py_3.10_64_manylinux2010:
+          MB_PYTHON_VERSION: "3.10"
+          MB_ML_VER: "2010"
+        py_3.10_64_manylinux2014:
+          MB_PYTHON_VERSION: "3.10"
+          MB_ML_VER: "2014"
+
 
         # 32-bit linux builds
         py_3.6_32manylinux1:
@@ -121,6 +131,19 @@ jobs:
           ENV_VARS_PATH: "env_vars_32.sh"
           DOCKER_TEST_IMAGE: "multibuild/xenial_{PLAT}"
 
+        py_3.10_32manylinux1:
+          MB_PYTHON_VERSION: "3.10"
+          PLAT: "i686"
+          MB_ML_VER: "1"
+          ENV_VARS_PATH: "env_vars_32.sh"
+          DOCKER_TEST_IMAGE: "multibuild/xenial_{PLAT}"
+        py_3.10_32manylinux2010:
+          MB_PYTHON_VERSION: "3.10"
+          PLAT: "i686"
+          MB_ML_VER: "2010"
+          ENV_VARS_PATH: "env_vars_32.sh"
+          DOCKER_TEST_IMAGE: "multibuild/xenial_{PLAT}"
+
 
   - template: azure/posix.yml
     parameters:
@@ -135,7 +158,12 @@ jobs:
           MB_PYTHON_VERSION: "3.8"
         py_3.9_64:
           MB_PYTHON_VERSION: "3.9"
+        py_3.10_64:
+          MB_PYTHON_VERSION: "3.10"
 
         py_3.9_universal2:
           MB_PYTHON_VERSION: "3.9"
+          PLAT: universal2
+        py_3.10_universal2:
+          MB_PYTHON_VERSION: "3.10"
           PLAT: universal2
