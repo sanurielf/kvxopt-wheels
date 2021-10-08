@@ -15,7 +15,7 @@ export OPENBLAS_VERSION=0.3.13
 if [ -z "$IS_MACOS" -a "${MB_ML_VER}" == "1" ]; then 
     export KVXOPT_BUILD_OSQP=0
 else
-    export KVXOPT_BUILD_OSQP=0
+    export KVXOPT_BUILD_OSQP=1
 fi
 
 
