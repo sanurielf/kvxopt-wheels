@@ -7,8 +7,8 @@ if [ $(uname) == "Linux" ]; then IS_LINUX=1; fi
 # Configure which optional extensions to build
 export KVXOPT_BUILD_DSDP=0
 export KVXOPT_BUILD_FFTW=0
-export KVXOPT_BUILD_GLPK=0
-export KVXOPT_BUILD_GSL=0
+export KVXOPT_BUILD_GLPK=1
+export KVXOPT_BUILD_GSL=1
 export OPENBLAS_VERSION=0.3.13
 
 # OSQP cannot be build in manylinux1 because Cmake>=3.2
@@ -73,6 +73,9 @@ function pre_build {
     export KVXOPT_DSDP_INC_DIR=${BUILD_PREFIX}/include
     export KVXOPT_OSQP_LIB_DIR=${BUILD_PREFIX}/lib
     export KVXOPT_OSQP_INC_DIR=${BUILD_PREFIX}/include/osqp
+    if [ -n "${IS_MACOS}" ]; then
+        export DYLD_LIBRARY_PATH="${BUILD_PREFIX}/lib/:$DYLD_LIBRARY_PATH"
+    fi
     export KVXOPT_SUITESPARSE_SRC_DIR=`pwd`/SuiteSparse
 }
 
