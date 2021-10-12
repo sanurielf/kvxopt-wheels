@@ -6,7 +6,7 @@ on:
 
 env:
   BUILD_COMMIT: 1.2.7.0
-  UPLOAD_TO_WASABY: 0
+  UPLOAD_TO_BACKBLAZE: 1
   # Upload to test pipy
   UPLOAD_TO_TEST_PYPI: 1
   # Upload to official pipy repo
@@ -307,17 +307,17 @@ jobs:
             python -c 'from kvxopt import blas,lapack,cholmod,umfpack,klu,glpk,osqp'
             py.test --cov=kvxopt kvxopt\tests
 
-      - name: Upload to WASABI
+      - name: Upload to BACKBLAZE
         env:
-          WASABI_KEY_ID: ${{ secrets.AWS_KEY_ID }}
-          WASABI_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          BACKBLAZE_KEYID: ${{ secrets.BACKBLAZE_KEYID }}
+          BACKBLAZE_APPKEY: ${{ secrets.BACKBLAZE_APPKEY }}
         run: |
           pip install boto3
 
           for /r %%f in (*.whl) do python s3_upload.py %%f
 
         shell: cmd
-        if: ${{ env.UPLOAD_TO_WASABY == 1 }}
+        if: ${{ env.UPLOAD_TO_BACKBLAZE == 1 }}
 
       - name: Publish wheels to PyPI test
         env:

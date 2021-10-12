@@ -93,11 +93,11 @@ jobs:
           do
             python s3_upload.py "$file"
           done
-        condition: eq(variables['UPLOAD_TO_WASABY'], 1)
+        condition: eq(variables['UPLOAD_TO_BACKBLAZE'], 1)
         env:
-          WASABI_KEY_ID: $(WASABI_KEY_ID)
-          WASABI_ACCESS_KEY: $(WASABI_ACCESS_KEY)
-        displayName: Upload to Wasabi
+          BACKBLAZE_KEYID: $(BACKBLAZE_KEYID)
+          BACKBLAZE_APPKEY: $(BACKBLAZE_APPKEY)
+        displayName: Upload to BACKBLAZE
 
       - bash: |
           set -ex
