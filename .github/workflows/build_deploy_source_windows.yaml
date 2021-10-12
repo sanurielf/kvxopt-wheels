@@ -8,7 +8,7 @@ env:
   BUILD_COMMIT: 1.2.7.0
   UPLOAD_TO_WASABY: 0
   # Upload to test pipy
-  UPLOAD_TO_TEST_PYPI: 0
+  UPLOAD_TO_TEST_PYPI: 1
   # Upload to official pipy repo
   UPLOAD_TO_OFFI_PYPI: 0
   GLPK_VERSION: "5.0"
