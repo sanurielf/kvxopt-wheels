@@ -1,7 +1,7 @@
 DSDP_VERSION="5.8"
 DSDP_SHA256="26aa624525a636de272c0b329e2dfd01a0d5b7827f1c1c76f393d71e37dead70"
-GLPK_VERSION="4.65"
-GLPK_SHA256="4281e29b628864dfe48d393a7bedd781e5b475387c20d8b0158f329994721a10"
+GLPK_VERSION="5.0"
+GLPK_SHA256="4a1013eebb50f728fc601bdd833b0b2870333c3b3e5a816eeba921d95bec6f15"
 GSL_VERSION="2.7"
 GSL_SHA256="efbbf3785da0e53038be7907500628b466152dbc3c173a87de1b5eba2e23602b"
 FFTW_VERSION="3.3.8"
@@ -191,13 +191,23 @@ function build_gsl {
 
   fetch_unpack http://ftp.download-by.net/gnu/gnu/gsl/gsl-${GSL_VERSION}.tar.gz
   check_sha256sum archives/gsl-${GSL_VERSION}.tar.gz ${GSL_SHA256}
-
-  (cd gsl-${GSL_VERSION} \
-  && ./configure --prefix=${BUILD_PREFIX}\
-  && make \
-  && make install \
-  && cd .. \
-  && rm -rf gsl-${GSL_VERSION})
+    
+  if [ "$PLAT" == "arm64" ]; then
+    # For arm64 we need to excplicitily define openblas linking
+    (cd gsl-${GSL_VERSION} \
+    && ./configure --prefix=${BUILD_PREFIX} LDFLAGS=-L${BUILD_PREFIX}/lib LIBS="-lopenblas -lm"\
+    && make \
+    && make install \
+    && cd .. \
+    && rm -rf gsl-${GSL_VERSION})
+  else
+    (cd gsl-${GSL_VERSION} \
+    && ./configure --prefix=${BUILD_PREFIX}\
+    && make \
+    && make install \
+    && cd .. \
+    && rm -rf gsl-${GSL_VERSION})
+  fi;
 
 
   touch gsl-stamp
