@@ -14,6 +14,7 @@ env:
   GLPK_VERSION: "5.0"
   GLPK_SHA256: 4a1013eebb50f728fc601bdd833b0b2870333c3b3e5a816eeba921d95bec6f15
   OSQP_VERSION: 0.6.2
+  GSL_COMMIT_HASH: "f8e56946ce337a5a3f3229821faaf52607842874"
 
 jobs:
 
@@ -98,6 +99,13 @@ jobs:
           msystem: MINGW64
           install: coreutils unzip git
 
+      - name: Get GSL
+        shell: msys2 {0}
+        run: |
+            git clone --recursive https://github.com/ampl/gsl.git
+            cd gsl
+            git checkout ${GSL_COMMIT_HASH}
+      
       - name: Get GLPK
         shell: msys2 {0}
         run: |
@@ -150,11 +158,26 @@ jobs:
           name: osqp-${{ matrix.ARCH }}
           path: osqp/build/dist/*
 
+      - name: Compile GSL
+        run: |
+            call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars${{ matrix.VC_TARGET }}.bat"
+            cd gsl
+            mkdir build
+            cd build
+            cmake -G "Visual Studio 16 2019" -A ${{ matrix.CMAKE_TARGET }} -DGSL_INSTALL_MULTI_CONFIG=ON -DBUILD_SHARED_LIBS=ON -DMSVC_RUNTIME_DYNAMIC=ON -DCMAKE_INSTALL_PREFIX=dist ..
+            cmake --build . --target install
+        shell: cmd
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: gsl-${{ matrix.ARCH }}
+          path: gsl/build/dist/*
+
   Build_wheel:
     needs: Build_common_libs
     runs-on: windows-latest
     env:
-      KVXOPT_BUILD_GSL: 0
+      KVXOPT_BUILD_GSL: 1
       KVXOPT_BUILD_FFTW: 0
       KVXOPT_BUILD_GLPK: 1
       KVXOPT_BUILD_DSDP: 0
@@ -250,6 +273,17 @@ jobs:
         run: |
             echo "KVXOPT_OSQP_LIB_DIR=${{ github.workspace}}\osqp_lib\lib" >> $GITHUB_ENV
             echo "KVXOPT_OSQP_INC_DIR=${{ github.workspace}}\osqp_lib\include\osqp" >> $GITHUB_ENV
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: gsl-${{ matrix.ARCH }}
+          path: gsl_lib
+
+      - name: Set GSL path
+        shell: msys2 {0}
+        run: |
+            echo "KVXOPT_GSL_LIB_DIR=${{ github.workspace}}\gsl_lib\lib\Debug" >> $GITHUB_ENV
+            echo "KVXOPT_GSL_INC_DIR=${{ github.workspace}}\gsl_lib\include" >> $GITHUB_ENV
 
       - name: Build wheel
         run: |
