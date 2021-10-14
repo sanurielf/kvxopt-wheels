@@ -291,6 +291,7 @@ jobs:
           python setup.py build
           copy ${{ github.workspace}}\OpenBLAS\bin\libopenblas.dll build\lib.${{ matrix.PYTHON_TARGET }}-${{ matrix.python-version }}\kvxopt
           copy ${{ github.workspace}}\gsl_lib\bin\Debug\gsl.dll build\lib.${{ matrix.PYTHON_TARGET }}-${{ matrix.python-version }}\kvxopt
+          copy ${{ github.workspace}}\gsl_lib\bin\Debug\gslcblas.dll build\lib.${{ matrix.PYTHON_TARGET }}-${{ matrix.python-version }}\kvxopt
           copy OpenBLAS_LINCENSE build\lib.${{ matrix.PYTHON_TARGET }}-${{ matrix.python-version }}\kvxopt
           python setup.py bdist_wheel
         shell: cmd
