@@ -5,12 +5,12 @@ on:
     branches: [master]
 
 env:
-  BUILD_COMMIT: 1.2.7.1
+  BUILD_COMMIT: 1.2.7.2
   UPLOAD_TO_BACKBLAZE: 0
   # Upload to test pipy
   UPLOAD_TO_TEST_PYPI: 0
   # Upload to official pipy repo
-  UPLOAD_TO_OFFI_PYPI: 1
+  UPLOAD_TO_OFFI_PYPI: 0
   GLPK_VERSION: "5.0"
   GLPK_SHA256: 4a1013eebb50f728fc601bdd833b0b2870333c3b3e5a816eeba921d95bec6f15
   OSQP_VERSION: 0.6.2
@@ -31,7 +31,7 @@ jobs:
 
       - name: Checkout submodules
         run: |
-          git submodule update --init --recursive   
+          git submodule update --init --recursive
           cd kvxopt
           git checkout ${BUILD_COMMIT}
 
@@ -49,7 +49,7 @@ jobs:
         run: |
             brew install openblas glpk gsl fftw suite-sparse osqp
 
-      - name: Build 
+      - name: Build
         run: |
           cd kvxopt
           python setup.py build
@@ -90,7 +90,7 @@ jobs:
           - ARCH: x86
             VC_TARGET: 32
             CMAKE_TARGET: Win32
-      
+
     steps:
 
       - name: Setup msys2
@@ -105,7 +105,7 @@ jobs:
             git clone --recursive https://github.com/ampl/gsl.git
             cd gsl
             git checkout ${GSL_COMMIT_HASH}
-      
+
       - name: Get GLPK
         shell: msys2 {0}
         run: |
@@ -209,10 +209,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      
+
       - name: Checkout submodules
         run: |
-          git submodule update --init --recursive      
+          git submodule update --init --recursive
           cd kvxopt
           git checkout ${{ env.BUILD_COMMIT }}
         shell: cmd
@@ -267,7 +267,7 @@ jobs:
             shasum -a 256 -c SuiteSparse.sha256
             tar -xf v${{ env.SUITESPARSE_VERSION }}.tar.gz
             echo "KVXOPT_SUITESPARSE_SRC_DIR=${{ github.workspace}}/SuiteSparse-${{ env.SUITESPARSE_VERSION }}" >> $GITHUB_ENV
-      
+
       - uses: actions/download-artifact@v2
         with:
           name: glpk-${{ matrix.ARCH }}
@@ -278,7 +278,7 @@ jobs:
         run: |
             echo "KVXOPT_GLPK_LIB_DIR=${{ github.workspace}}\glpk_lib\w64" >> $GITHUB_ENV
             echo "KVXOPT_GLPK_INC_DIR=${{ github.workspace}}\glpk_lib\src" >> $GITHUB_ENV
-      
+
       - uses: actions/download-artifact@v2
         with:
           name: osqp-${{ matrix.ARCH }}
@@ -340,7 +340,7 @@ jobs:
 
       - name: Checkout submodules
         run: |
-          git submodule update --init --recursive      
+          git submodule update --init --recursive
           cd kvxopt
           git checkout ${{ env.BUILD_COMMIT }}
         shell: cmd
