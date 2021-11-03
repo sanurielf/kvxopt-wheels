@@ -27,64 +27,53 @@ jobs:
       vmImage: ubuntu-18.04
       matrix:
         # 64-bit linux builds
-        py_3.6_64manylinux1:
-          MB_PYTHON_VERSION: "3.6"
-          MB_ML_VER: "1"
         py_3.6_64_manylinux2010:
           MB_PYTHON_VERSION: "3.6"
           MB_ML_VER: "2010"
+          DOCKER_TEST_IMAGE: "multibuild/xenial_{PLAT}"
         py_3.6_64_manylinux2014:
           MB_PYTHON_VERSION: "3.6"
           MB_ML_VER: "2014"
+          DOCKER_TEST_IMAGE: "multibuild/xenial_{PLAT}"
 
-        py_3.7_64manylinux1:
-          MB_PYTHON_VERSION: "3.7"
-          MB_ML_VER: "1"
         py_3.7_64_manylinux2010:
           MB_PYTHON_VERSION: "3.7"
           MB_ML_VER: "2010"
+          DOCKER_TEST_IMAGE: "multibuild/xenial_{PLAT}"
         py_3.7_64_manylinux2014:
           MB_PYTHON_VERSION: "3.7"
           MB_ML_VER: "2014"
+          DOCKER_TEST_IMAGE: "multibuild/xenial_{PLAT}"
 
-        py_3.8_64manylinux1:
-          MB_PYTHON_VERSION: "3.8"
-          MB_ML_VER: "1"
         py_3.8_64_manylinux2010:
           MB_PYTHON_VERSION: "3.8"
           MB_ML_VER: "2010"
+          DOCKER_TEST_IMAGE: "multibuild/xenial_{PLAT}"
         py_3.8_64_manylinux2014:
           MB_PYTHON_VERSION: "3.8"
           MB_ML_VER: "2014"
+          DOCKER_TEST_IMAGE: "multibuild/xenial_{PLAT}"
 
-        py_3.9_64manylinux1:
-          MB_PYTHON_VERSION: "3.9"
-          MB_ML_VER: "1"
         py_3.9_64_manylinux2010:
           MB_PYTHON_VERSION: "3.9"
           MB_ML_VER: "2010"
+          DOCKER_TEST_IMAGE: "multibuild/xenial_{PLAT}"
         py_3.9_64_manylinux2014:
           MB_PYTHON_VERSION: "3.9"
           MB_ML_VER: "2014"
+          DOCKER_TEST_IMAGE: "multibuild/xenial_{PLAT}"
 
-        py_3.10_64manylinux1:
-          MB_PYTHON_VERSION: "3.10"
-          MB_ML_VER: "1"
         py_3.10_64_manylinux2010:
           MB_PYTHON_VERSION: "3.10"
           MB_ML_VER: "2010"
+          DOCKER_TEST_IMAGE: "multibuild/xenial_{PLAT}"
         py_3.10_64_manylinux2014:
           MB_PYTHON_VERSION: "3.10"
           MB_ML_VER: "2014"
+          DOCKER_TEST_IMAGE: "multibuild/xenial_{PLAT}"
 
 
         # 32-bit linux builds
-        py_3.6_32manylinux1:
-          MB_PYTHON_VERSION: "3.6"
-          PLAT: "i686"
-          MB_ML_VER: "1"
-          ENV_VARS_PATH: "env_vars_32.sh"
-          DOCKER_TEST_IMAGE: "multibuild/xenial_{PLAT}"
         py_3.6_32manylinux2010:
           MB_PYTHON_VERSION: "3.6"
           PLAT: "i686"
@@ -92,12 +81,6 @@ jobs:
           ENV_VARS_PATH: "env_vars_32.sh"
           DOCKER_TEST_IMAGE: "multibuild/xenial_{PLAT}"
 
-        py_3.7_32manylinux1:
-          MB_PYTHON_VERSION: "3.7"
-          PLAT: "i686"
-          MB_ML_VER: "1"
-          ENV_VARS_PATH: "env_vars_32.sh"
-          DOCKER_TEST_IMAGE: "multibuild/xenial_{PLAT}"
         py_3.7_32manylinux2010:
           MB_PYTHON_VERSION: "3.7"
           PLAT: "i686"
@@ -105,12 +88,6 @@ jobs:
           ENV_VARS_PATH: "env_vars_32.sh"
           DOCKER_TEST_IMAGE: "multibuild/xenial_{PLAT}"
 
-        py_3.8_32manylinux1:
-          MB_PYTHON_VERSION: "3.8"
-          PLAT: "i686"
-          MB_ML_VER: "1"
-          ENV_VARS_PATH: "env_vars_32.sh"
-          DOCKER_TEST_IMAGE: "multibuild/xenial_{PLAT}"
         py_3.8_32manylinux2010:
           MB_PYTHON_VERSION: "3.8"
           PLAT: "i686"
@@ -118,12 +95,6 @@ jobs:
           ENV_VARS_PATH: "env_vars_32.sh"
           DOCKER_TEST_IMAGE: "multibuild/xenial_{PLAT}"
 
-        py_3.9_32manylinux1:
-          MB_PYTHON_VERSION: "3.9"
-          PLAT: "i686"
-          MB_ML_VER: "1"
-          ENV_VARS_PATH: "env_vars_32.sh"
-          DOCKER_TEST_IMAGE: "multibuild/xenial_{PLAT}"
         py_3.9_32manylinux2010:
           MB_PYTHON_VERSION: "3.9"
           PLAT: "i686"
@@ -131,12 +102,6 @@ jobs:
           ENV_VARS_PATH: "env_vars_32.sh"
           DOCKER_TEST_IMAGE: "multibuild/xenial_{PLAT}"
 
-        py_3.10_32manylinux1:
-          MB_PYTHON_VERSION: "3.10"
-          PLAT: "i686"
-          MB_ML_VER: "1"
-          ENV_VARS_PATH: "env_vars_32.sh"
-          DOCKER_TEST_IMAGE: "multibuild/xenial_{PLAT}"
         py_3.10_32manylinux2010:
           MB_PYTHON_VERSION: "3.10"
           PLAT: "i686"
