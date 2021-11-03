@@ -14,9 +14,9 @@ variables:
   BUILD_COMMIT: "1.2.7.2"
   UPLOAD_TO_BACKBLAZE: 1
   # Upload to test pipy
-  UPLOAD_TO_TEST_PYPI: 1
+  UPLOAD_TO_TEST_PYPI: 0
   # Upload to official pipy repo
-  UPLOAD_TO_OFFI_PYPI: 0
+  UPLOAD_TO_OFFI_PYPI: 1
 
 jobs:
 
