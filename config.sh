@@ -79,17 +79,10 @@ function pre_build {
     fi
     export KVXOPT_SUITESPARSE_SRC_DIR=`pwd`/SuiteSparse
 }
-function pip_opts {
-    # Define extra pip arguments
-
-    # We pass upgrade flag to force pip update
-    echo "--upgrade"
-}
 
 function run_tests {
 
     # Runs tests on installed distribution from an empty directory
-    $PYTHON_EXE -m pip install --upgrade pip
     $PYTHON_EXE --version
     $PYTHON_EXE -c 'from kvxopt import blas,lapack,cholmod,umfpack,klu'
     pytest ${TESTS_DIR}

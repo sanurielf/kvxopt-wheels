@@ -11,7 +11,7 @@ jobs:
       REPO_DIR: "kvxopt"
       PLAT: "x86_64"
       NIGHTLY_BUILD_COMMIT: "master"
-      TEST_DEPENDS: "pip pytest numpy"
+      TEST_DEPENDS: "pytest numpy"
       JUNITXML: "test-data.xml"
       TEST_DIR: "tmp_for_test"
     strategy:
