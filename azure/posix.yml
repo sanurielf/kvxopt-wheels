@@ -11,7 +11,7 @@ jobs:
       REPO_DIR: "kvxopt"
       PLAT: "x86_64"
       NIGHTLY_BUILD_COMMIT: "master"
-      TEST_DEPENDS: "pytest numpy"
+      TEST_DEPENDS: "pip pytest numpy"
       JUNITXML: "test-data.xml"
       TEST_DIR: "tmp_for_test"
     strategy:
@@ -60,7 +60,7 @@ jobs:
       - bash: |
           set -ex
           echo $BUILD_COMMIT
-          
+
           pip install virtualenv wheel
 
           source multibuild/common_utils.sh
