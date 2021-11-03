@@ -1,6 +1,6 @@
 [submodule "multibuild"]
 	path = multibuild
-	url = https://github.com/matthew-brett/multibuild
+	url = https://github.com/sanurielf/multibuild.git
 [submodule "kvxopt"]
 	path = kvxopt
 	url = https://github.com/sanurielf/kvxopt
