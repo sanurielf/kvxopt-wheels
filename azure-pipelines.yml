@@ -12,9 +12,9 @@ pr:
 
 variables:
   BUILD_COMMIT: "1.2.7.2"
-  UPLOAD_TO_BACKBLAZE: 0
+  UPLOAD_TO_BACKBLAZE: 1
   # Upload to test pipy
-  UPLOAD_TO_TEST_PYPI: 0
+  UPLOAD_TO_TEST_PYPI: 1
   # Upload to official pipy repo
   UPLOAD_TO_OFFI_PYPI: 0
 
@@ -102,12 +102,12 @@ jobs:
           ENV_VARS_PATH: "env_vars_32.sh"
           DOCKER_TEST_IMAGE: "multibuild/xenial_{PLAT}"
 
-        py_3.10_32manylinux2010:
-          MB_PYTHON_VERSION: "3.10"
-          PLAT: "i686"
-          MB_ML_VER: "2010"
-          ENV_VARS_PATH: "env_vars_32.sh"
-          DOCKER_TEST_IMAGE: "multibuild/xenial_{PLAT}"
+        # py_3.10_32manylinux2010:
+        #   MB_PYTHON_VERSION: "3.10"
+        #   PLAT: "i686"
+        #   MB_ML_VER: "2010"
+        #   ENV_VARS_PATH: "env_vars_32.sh"
+        #   DOCKER_TEST_IMAGE: "multibuild/xenial_{PLAT}"
 
 
   - template: azure/posix.yml
