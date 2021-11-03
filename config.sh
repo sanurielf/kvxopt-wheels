@@ -1,7 +1,8 @@
 # Define custom utilities
-
 if [ $(uname) == "Linux" ]; then IS_LINUX=1; fi
-
+# For verbosity: report where each command came from
+export PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+set -x
 
 
 # Configure which optional extensions to build
