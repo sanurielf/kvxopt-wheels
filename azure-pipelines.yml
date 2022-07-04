@@ -16,17 +16,16 @@ variables:
   # Upload to test pipy
   UPLOAD_TO_TEST_PYPI: 0
   # Upload to official pipy repo
-  UPLOAD_TO_OFFI_PYPI: 1
+  UPLOAD_TO_OFFI_PYPI: 0
 
 jobs:
-
-
+    # aarch64 linux builds
   - template: azure/posix.yml
     parameters:
-      name: linux
+      name: linux_x86_64
       vmImage: ubuntu-18.04
+      plat: x86_64
       matrix:
-        # 64-bit linux builds
         py_3.6_64_manylinux2010:
           MB_PYTHON_VERSION: "3.6"
           MB_ML_VER: "2010"
@@ -71,6 +70,45 @@ jobs:
           MB_PYTHON_VERSION: "3.10"
           MB_ML_VER: "2014"
           DOCKER_TEST_IMAGE: "multibuild/focal_{PLAT}"
+
+    # x86_64 linux builds
+  - template: azure/posix.yml
+    parameters:
+      name: linux_aarch64
+      vmImage: ubuntu-18.04
+      plat: aarch64
+      arch: arm64
+      matrix:
+        py_3.6_aarch64_manylinux2014:
+          MB_PYTHON_VERSION: "3.6"
+          MB_ML_VER: "2014"
+          DOCKER_TEST_IMAGE: "multibuild/focal_{PLAT}"
+
+
+        py_3.7_aarch64_manylinux2014:
+          MB_PYTHON_VERSION: "3.7"
+          MB_ML_VER: "2014"
+          DOCKER_TEST_IMAGE: "multibuild/focal_{PLAT}"
+
+
+        py_3.8_aarch64_manylinux2014:
+          MB_PYTHON_VERSION: "3.8"
+          MB_ML_VER: "2014"
+          DOCKER_TEST_IMAGE: "multibuild/focal_{PLAT}"
+
+
+        py_3.9_aarch64_manylinux2014:
+          MB_PYTHON_VERSION: "3.9"
+          MB_ML_VER: "2014"
+          DOCKER_TEST_IMAGE: "multibuild/focal_{PLAT}"
+
+
+        py_3.10_aarch64_manylinux2014:
+          MB_PYTHON_VERSION: "3.10"
+          MB_ML_VER: "2014"
+          DOCKER_TEST_IMAGE: "multibuild/focal_{PLAT}"
+
+
 
 
 

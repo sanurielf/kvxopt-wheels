@@ -9,7 +9,7 @@ jobs:
       vmImage: ${{ parameters.vmImage }}
     variables:
       REPO_DIR: "kvxopt"
-      PLAT: "x86_64"
+      PLAT: ${{ parameters.plat }}
       NIGHTLY_BUILD_COMMIT: "master"
       TEST_DEPENDS: "pytest numpy"
       JUNITXML: "test-data.xml"
