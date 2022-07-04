@@ -19,7 +19,7 @@ variables:
   UPLOAD_TO_OFFI_PYPI: 0
 
 jobs:
-    # aarch64 linux builds
+    # x86_64 linux builds
   - template: azure/posix.yml
     parameters:
       name: linux_x86_64
@@ -77,7 +77,6 @@ jobs:
       name: linux_aarch64
       vmImage: ubuntu-18.04
       plat: aarch64
-      arch: arm64
       matrix:
         py_3.6_aarch64_manylinux2014:
           MB_PYTHON_VERSION: "3.6"
