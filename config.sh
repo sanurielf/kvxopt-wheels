@@ -84,6 +84,12 @@ function pre_build {
     export KVXOPT_SUITESPARSE_SRC_DIR=`pwd`/SuiteSparse
 }
 
+# Override build_wheel to use build_bdist_wheel
+function build_wheel {
+    # Wheel building with bdist_wheel. See bdist_wheel_cmd
+    wrap_wheel_builder build_wheel_cmd "bdist_wheel_cmd" $@
+}
+
 function run_tests {
 
     # Runs tests on installed distribution from an empty directory
