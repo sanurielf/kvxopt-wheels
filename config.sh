@@ -19,6 +19,10 @@ else
     export KVXOPT_BUILD_OSQP=1
 fi
 
+# GSL cannot be build in linux aarch64 because it takes more than 1 hour to compile
+if [ "$PLAT" == "aarch64" ]; then
+    export KVXOPT_BUILD_GSL=0
+fi
 
 
 ROOT_DIR=$(dirname $(dirname "${BASH_SOURCE[0]}"))

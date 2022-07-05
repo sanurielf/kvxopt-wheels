@@ -191,7 +191,7 @@ function build_gsl {
 
   fetch_unpack http://ftp.download-by.net/gnu/gnu/gsl/gsl-${GSL_VERSION}.tar.gz
   check_sha256sum archives/gsl-${GSL_VERSION}.tar.gz ${GSL_SHA256}
-    
+
   if [ "$PLAT" == "arm64" ]; then
     # For arm64 we need to excplicitily define openblas linking
     (cd gsl-${GSL_VERSION} \
