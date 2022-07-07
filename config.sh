@@ -19,9 +19,12 @@ else
     export KVXOPT_BUILD_OSQP=1
 fi
 
-# GSL cannot be build in linux aarch64 because it takes more than 1 hour to compile
+# GSL and GLPK cannot be build in linux aarch64 because it takes more
+# than 1 hour to compile. This is because of QEMU docker virtualization from
+# x_86_64 to arm 64
 if [ "$PLAT" == "aarch64" ]; then
     export KVXOPT_BUILD_GSL=0
+    export KVXOPT_BUILD_GLPK=0
 fi
 
 
