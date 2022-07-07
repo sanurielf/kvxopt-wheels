@@ -58,17 +58,6 @@ jobs:
             echo "##vso[task.setvariable variable=TRAVIS_OS_NAME]linux"
           fi
 
-          if [ `uname` != 'Darwin' ]; then
-            if [[ "$PLAT" == x86_64 ]]; then
-                ARCH="amd64"
-            elif [[ "$PLAT" == aarch64 ]]; then
-                ARCH="arm64"
-            else
-                echo "Invalid platform = '"$PLAT"'. Supported values are  'x86_64', 'aarch64'"
-                exit 1
-            fi
-            echo "##vso[task.setvariable variable=ARCH]$ARCH"
-          fi
 
           # Store original Python path to be able to create test_venv pointing
           # to same Python version.
