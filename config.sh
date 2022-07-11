@@ -27,6 +27,11 @@ if [ "$PLAT" == "aarch64" ]; then
     export KVXOPT_BUILD_GLPK=0
 fi
 
+# Work around https://github.com/pypa/manylinux/issues/1309
+if [ $(uname) == "Linux" ]; then
+    ! git config --global --add safe.directory /io/kvxopt
+fi
+
 
 ROOT_DIR=$(dirname $(dirname "${BASH_SOURCE[0]}"))
 source ${ROOT_DIR}/multibuild/common_utils.sh
