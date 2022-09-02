@@ -120,7 +120,7 @@ function openblas_get_windows {
     local plat=${1:-$}
 
     local fname="OpenBLAS-${OPENBLAS_VERSION_WIN}-x${plat}.zip"
-    
+
 
     local out_fname="${ARCHIVE_SDIR}/$fname"
     if [ ! -e "$out_fname" ]; then
@@ -143,7 +143,7 @@ function build_openblas_windows {
     local plat=${1:-${PLAT:-32}}
     local zip_path=$(abspath $(openblas_get_windows $plat))
 
-    cd ${ARCHIVE_SDIR}    
+    cd ${ARCHIVE_SDIR}
     if [ "$plat" == "32" ]; then
       echo "${OPENBLAS_SHA256_WIN32}  OpenBLAS-${OPENBLAS_VERSION_WIN}-${plat}.zip" > OpenBLAS.sha256
     else
