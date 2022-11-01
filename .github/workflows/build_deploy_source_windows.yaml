@@ -5,7 +5,7 @@ on:
     branches: [master]
 
 env:
-  BUILD_COMMIT: 1.3.0.2
+  BUILD_COMMIT: 1.3.0.3
   UPLOAD_TO_BACKBLAZE: 0
   # Upload to test pipy
   UPLOAD_TO_TEST_PYPI: 1
