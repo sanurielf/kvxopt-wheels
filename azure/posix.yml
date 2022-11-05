@@ -82,6 +82,7 @@ jobs:
           build_wheel $REPO_DIR $PLAT
         displayName: Build wheel
 
+      # We dont test for OSx arm64 since VMImages are not available for testing.
       - bash: |
           set -ex
           source multibuild/common_utils.sh
@@ -92,6 +93,8 @@ jobs:
           install_run $PLAT
           teardown_test_venv
         displayName: Install wheel and test
+        condition: ne(variables['PLAT'], 'arm64')
+
 
       - bash: |
           set -ex

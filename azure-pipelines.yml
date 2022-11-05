@@ -21,6 +21,7 @@ variables:
 jobs:
     # x86_64 linux builds
   - template: azure/posix.yml
+    condition: false
     parameters:
       name: linux_x86_64
       vmImage: ubuntu-latest
@@ -80,6 +81,7 @@ jobs:
 
     # x86_64 linux builds
   - template: azure/posix.yml
+    condition: false
     parameters:
       name: linux_aarch64
       vmImage: ubuntu-latest
