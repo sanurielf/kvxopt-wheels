@@ -23,7 +23,7 @@ jobs:
   - template: azure/posix.yml
     parameters:
       name: linux_x86_64
-      vmImage: ubuntu-18.04
+      vmImage: ubuntu-latest
       plat: x86_64
       matrix:
         py_3.6_64_manylinux2010:
@@ -84,7 +84,7 @@ jobs:
   - template: azure/posix.yml
     parameters:
       name: linux_aarch64
-      vmImage: ubuntu-18.04
+      vmImage: ubuntu-latest
       plat: aarch64
       matrix:
         py_3.6_aarch64_manylinux2014:
