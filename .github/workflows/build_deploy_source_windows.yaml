@@ -222,8 +222,8 @@ jobs:
         - python-version: 3.10
           PYTHON_TARGET: cpython-310
 
-        # - python-version: 3.11
-        #   PYTHON_TARGET: cpython-311
+        - python-version: 3.11
+          PYTHON_TARGET: cpython-311
 
     steps:
       - uses: actions/checkout@v2
