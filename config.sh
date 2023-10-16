@@ -47,28 +47,36 @@ function pre_build {
     # Runs in the root directory of this repository.
 
     # Download SuiteSparse
-    if [ ! -e suitesparse-stamp ]; then
-        mkdir -p archives
-        curl -L https://github.com/DrTimothyAldenDavis/SuiteSparse/archive/v${SUITESPARSE_VERSION}.tar.gz > archives/SuiteSparse-${SUITESPARSE_VERSION}.tar.gz
-        check_sha256sum archives/SuiteSparse-${SUITESPARSE_VERSION}.tar.gz ${SUITESPARSE_SHA256}
-        mkdir SuiteSparse && tar -xf archives/SuiteSparse-${SUITESPARSE_VERSION}.tar.gz -C SuiteSparse --strip-components 1
-        touch suitesparse-stamp
-    fi
+    # if [ ! -e suitesparse-stamp ]; then
+    #     mkdir -p archives
+    #     curl -L https://github.com/DrTimothyAldenDavis/SuiteSparse/archive/v${SUITESPARSE_VERSION}.tar.gz > archives/SuiteSparse-${SUITESPARSE_VERSION}.tar.gz
+    #     check_sha256sum archives/SuiteSparse-${SUITESPARSE_VERSION}.tar.gz ${SUITESPARSE_SHA256}
+    #     mkdir SuiteSparse && tar -xf archives/SuiteSparse-${SUITESPARSE_VERSION}.tar.gz -C SuiteSparse --strip-components 1
+    #     touch suitesparse-stamp
+    # fi
+    # export KVXOPT_SUITESPARSE_SRC_DIR=`pwd`/SuiteSparse
 
-    # Get and install gfortran
+
+    build_suitesparse
+    if [ -n "$IS_MACOS" ]; then
+        export KVXOPT_SUITESPARSE_INC_DIR=$(brew --prefix)/include
+        export KVXOPT_SUITESPARSE_LIB_DIR=$(brew --prefix)/lib
+    else
+        export KVXOPT_SUITESPARSE_INC_DIR=/usr/include/suitesparse
+        export KVXOPT_SUITESPARSE_LIB_DIR=/usr/lib64
+    fi
 
     # Build dependencies
-    if [ -n "${IS_MACOS}" ]; then
-        install_gfortran
-        build_openblas_osx2
-    else
-        build_openblas  # defined in multibuild/library_builders.sh
-    fi
-
-    export KVXOPT_BLAS_LIB_DIR=${BUILD_PREFIX}/lib
-    export KVXOPT_GSL_LIB_DIR=${BUILD_PREFIX}/lib
+    build_openblas
     export KVXOPT_BLAS_LIB=openblas
     export KVXOPT_LAPACK_LIB=openblas
+    if [ -n "$IS_MACOS" ]; then
+        export KVXOPT_BLAS_LIB_DIR=/usr/local/opt/openblas/lib
+    else
+        export KVXOPT_BLAS_LIB_DIR=${BUILD_PREFIX}/lib
+    fi
+
+    export KVXOPT_GSL_LIB_DIR=${BUILD_PREFIX}/lib
 
 
 
@@ -78,28 +86,12 @@ function pre_build {
     if [ "${KVXOPT_BUILD_FFTW}" == "1" ]; then build_fftw; fi
     if [ "${KVXOPT_BUILD_GLPK}" == "1" ]; then build_glpk; fi
 
-    export KVXOPT_GLPK_LIB_DIR=${BUILD_PREFIX}/lib
-    export KVXOPT_GLPK_INC_DIR=${BUILD_PREFIX}/include
-    export KVXOPT_FFTW_LIB_DIR=${BUILD_PREFIX}/lib
-    export KVXOPT_FFTW_INC_DIR=${BUILD_PREFIX}/include
-    export KVXOPT_DSDP_LIB_DIR=${BUILD_PREFIX}/lib
-    export KVXOPT_DSDP_INC_DIR=${BUILD_PREFIX}/include
-    export KVXOPT_OSQP_LIB_DIR=${BUILD_PREFIX}/lib
-    export KVXOPT_OSQP_INC_DIR=${BUILD_PREFIX}/include/osqp
+
     if [ -n "${IS_MACOS}" ]; then
         export DYLD_LIBRARY_PATH="${BUILD_PREFIX}/lib/:$DYLD_LIBRARY_PATH"
     fi
-    export KVXOPT_SUITESPARSE_SRC_DIR=`pwd`/SuiteSparse
 }
 
-# Override build_wheel to use build_bdist_wheel
-function build_wheel {
-    # Print versioneer
-    check_python
-    (cd kvxopt && $PYTHON_EXE setup.py version)
-    # Wheel building with bdist_wheel. See bdist_wheel_cmd
-    wrap_wheel_builder build_wheel_cmd "bdist_wheel_cmd" $@
-}
 
 function run_tests {
 

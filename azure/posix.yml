@@ -95,21 +95,6 @@ jobs:
         displayName: Install wheel and test
         condition: ne(variables['PLAT'], 'arm64')
 
-
-      - bash: |
-          set -ex
-          pip install boto3
-
-          for file in wheelhouse/*.whl
-          do
-            python s3_upload.py "$file"
-          done
-        condition: eq(variables['UPLOAD_TO_BACKBLAZE'], 1)
-        env:
-          BACKBLAZE_KEYID: $(BACKBLAZE_KEYID)
-          BACKBLAZE_APPKEY: $(BACKBLAZE_APPKEY)
-        displayName: Upload to BACKBLAZE
-
       - bash: |
           set -ex
           pip install twine

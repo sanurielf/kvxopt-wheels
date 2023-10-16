@@ -5,15 +5,14 @@ on:
     branches: [master]
 
 env:
-  BUILD_COMMIT: 1.3.0.3
-  UPLOAD_TO_BACKBLAZE: 0
+  BUILD_COMMIT: 1.3.2.0
   # Upload to test pipy
   UPLOAD_TO_TEST_PYPI: 0
   # Upload to official pipy repo
   UPLOAD_TO_OFFI_PYPI: 1
   GLPK_VERSION: "5.0"
   GLPK_SHA256: 4a1013eebb50f728fc601bdd833b0b2870333c3b3e5a816eeba921d95bec6f15
-  OSQP_VERSION: 0.6.2
+  OSQP_VERSION: 0.6.3
   GSL_COMMIT_HASH: "f8e56946ce337a5a3f3229821faaf52607842874"
 
 jobs:
@@ -43,7 +42,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install twine
+          pip install twine setuptools setuptools_scm wheel build
 
       - name: Install libraries
         run: |
@@ -99,14 +98,46 @@ jobs:
           msystem: MINGW64
           install: coreutils unzip git
 
-      - name: Get GSL
+      - name: Check cache for GSL
+        id: cache-gsl
+        uses: actions/cache@v3
+        with:
+          path: gsl
+          key: ${{ runner.os }}-${{ matrix.ARCH }}-osqp-${{ env.GSL_COMMIT_HASH }}
+
+      - if: ${{ steps.cache-gsl.outputs.cache-hit != 'true' }}
+        name: Get GSL
         shell: msys2 {0}
         run: |
             git clone --recursive https://github.com/ampl/gsl.git
             cd gsl
             git checkout ${GSL_COMMIT_HASH}
 
-      - name: Get GLPK
+      - if: ${{ steps.cache-gsl.outputs.cache-hit != 'true' }}
+        name: Compile GSL
+        run: |
+            call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars${{ matrix.VC_TARGET }}.bat"
+            cd gsl
+            mkdir build
+            cd build
+            cmake -G "Visual Studio 16 2019" -A ${{ matrix.CMAKE_TARGET }} -DGSL_INSTALL_MULTI_CONFIG=ON -DBUILD_SHARED_LIBS=ON -DMSVC_RUNTIME_DYNAMIC=ON -DCMAKE_INSTALL_PREFIX=dist ..
+            cmake --build . --target install
+        shell: cmd
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: gsl-${{ matrix.ARCH }}
+          path: gsl/build/dist/*
+
+      - name: Check cache for GLPK
+        id: cache-glpk
+        uses: actions/cache@v3
+        with:
+          path: glpk-${{ env.GLPK_VERSION }}
+          key: ${{ runner.os }}-${{ matrix.ARCH }}-glpk-${{ env.GLPK_VERSION }}-${{ env.GLPK_SHA256 }}
+
+      - if: ${{ steps.cache-glpk.outputs.cache-hit != 'true' }}
+        name: Get GLPK
         shell: msys2 {0}
         run: |
             wget -nv http://ftp.gnu.org/gnu/glpk/glpk-${{ env.GLPK_VERSION }}.tar.gz
@@ -114,19 +145,8 @@ jobs:
             shasum -a 256 -c GLPK.sha256
             tar -xf glpk-${{ env.GLPK_VERSION }}.tar.gz
 
-      - name: Get OSQP
-        shell: msys2 {0}
-        run: |
-            git clone --recursive https://github.com/oxfordcontrol/osqp.git
-            cd osqp
-            git checkout v${{ env.OSQP_VERSION }}
-
-      - name: Cofigure Visual Studio 2019
-        run: |
-          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars${{ matrix.VC_TARGET }}.bat"
-        shell: cmd
-
-      - name: Compile GLPK
+      - if: ${{ steps.cache-glpk.outputs.cache-hit != 'true' }}
+        name: Compile GLPK
         run: |
             call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars${{ matrix.VC_TARGET }}.bat"
             cd glpk-${{ env.GLPK_VERSION }}\w64
@@ -143,7 +163,25 @@ jobs:
             glpk-${{ env.GLPK_VERSION }}\w64\*
             glpk-${{ env.GLPK_VERSION }}\src\glpk.h
 
-      - name: Compile OSQP
+      - name: Check cache for OSQP
+        id: cache-osqp
+        uses: actions/cache@v3
+        with:
+          path: osqp
+          key: ${{ runner.os }}-${{ matrix.ARCH }}-osqp-${{ env.OSQP_VERSION }}
+
+      - if: ${{ steps.cache-osqp.outputs.cache-hit != 'true' }}
+        name: Get OSQP
+        shell: msys2 {0}
+        run: |
+            git clone --recursive https://github.com/oxfordcontrol/osqp.git
+            cd osqp
+            git checkout v${{ env.OSQP_VERSION }}
+            git submodule sync --recursive
+            git -c protocol.version=2 submodule update --init --force --depth=1 --recursive
+
+      - if: ${{ steps.cache-osqp.outputs.cache-hit != 'true' }}
+        name: Compile OSQP
         run: |
             call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars${{ matrix.VC_TARGET }}.bat"
             cd osqp
@@ -158,20 +196,7 @@ jobs:
           name: osqp-${{ matrix.ARCH }}
           path: osqp/build/dist/*
 
-      - name: Compile GSL
-        run: |
-            call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars${{ matrix.VC_TARGET }}.bat"
-            cd gsl
-            mkdir build
-            cd build
-            cmake -G "Visual Studio 16 2019" -A ${{ matrix.CMAKE_TARGET }} -DGSL_INSTALL_MULTI_CONFIG=ON -DBUILD_SHARED_LIBS=ON -DMSVC_RUNTIME_DYNAMIC=ON -DCMAKE_INSTALL_PREFIX=dist ..
-            cmake --build . --target install
-        shell: cmd
 
-      - uses: actions/upload-artifact@v2
-        with:
-          name: gsl-${{ matrix.ARCH }}
-          path: gsl/build/dist/*
 
   Build_wheel:
     needs: Build_common_libs
@@ -183,36 +208,30 @@ jobs:
       KVXOPT_BUILD_DSDP: 0
       KVXOPT_MSVC: 1
       KVXOPT_BUILD_OSQP: 1
-      SUITESPARSE_VERSION: 5.13.0
-      SUITESPARSE_SHA256: 59c6ca2959623f0c69226cf9afb9a018d12a37fab3a8869db5f6d7f83b6b147d
-      OPENBLAS_VERSION: 0.3.21
+      SUITESPARSE_VERSION: 7.2.1
+      SUITESPARSE_SHA256: 304e959a163ff74f8f4055dade3e0b5498d9aa3b1c483633bb400620f521509f
+      OPENBLAS_VERSION: 0.3.23
       FFTW_VERSION: 3.3.5
 
 
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.6', '3.7', '3.8', '3.9', '3.10', '3.11']
+        python-version: ['3.8', '3.9', '3.10', '3.11']
         suite-sparse: [src_suitesparse]
         ARCH: [x64, x86]
         include:
         - ARCH: x64
           VC_TARGET: 64
           PYTHON_ARCH_TARGET: win-amd64
-          OPENBLAS_SHA256: ecf1853ce92696fb8531c941c50e983ea8fa673c118a87298a075c045d52a3ca
+          OPENBLAS_SHA256: e3a82e60db8d6197228790567e7cf74f2c421a65b29f848977a07b5457debdaa
           FFTW_SHA256: cfd88dc0e8d7001115ea79e069a2c695d52c8947f5b4f3b7ac54a192756f439f
 
         - ARCH: x86
           VC_TARGET: 32
           PYTHON_ARCH_TARGET: win32
-          OPENBLAS_SHA256: 936416a0fec5506af9cf040c9de5c7edbd0ff18b53431799d1a43e47f9eba64e
+          OPENBLAS_SHA256: 89060f862ca33219aaf7ef49b58a0a8b2d763236a1c6a16c693cd28146a812e6
           FFTW_SHA256: 29882a43033c9393479a4df52a2e9120589c06a2b724155b1a682747fa3e57d4
-
-        - python-version: 3.6
-          PYTHON_TARGET: 3.6
-
-        - python-version: 3.7
-          PYTHON_TARGET: 3.7
 
         - python-version: 3.8
           PYTHON_TARGET: 3.8
@@ -251,7 +270,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install wheel
+          pip install setuptools setuptools_scm wheel build
 
       - name: Get openblas
         shell: msys2 {0}
@@ -260,8 +279,11 @@ jobs:
             wget https://raw.githubusercontent.com/xianyi/OpenBLAS/v${OPENBLAS_VERSION}/LICENSE  -O OpenBLAS_LINCENSE
             echo "${{matrix.OPENBLAS_SHA256}}  OpenBLAS-${OPENBLAS_VERSION}-${{ matrix.ARCH }}.zip" > OpenBLAS.sha256
             sha256sum -c OpenBLAS.sha256
+            mkdir kvxopt/src/python/.libs
             mkdir OpenBLAS
             unzip OpenBLAS-${OPENBLAS_VERSION}-${{matrix.ARCH}}.zip -d OpenBLAS/
+            cp OpenBLAS/bin/libopenblas.dll kvxopt/src/python/.libs
+            cp OpenBLAS_LINCENSE kvxopt/src/python/.libs
             echo "KVXOPT_BLAS_LIB_DIR=${{ github.workspace}}/OpenBLAS/lib" >> $GITHUB_ENV
             echo "KVXOPT_LAPACK_LIB=libopenblas" >> $GITHUB_ENV
             echo "KVXOPT_BLAS_LIB=libopenblas" >> $GITHUB_ENV
@@ -274,6 +296,7 @@ jobs:
             shasum -a 256 -c FFTW.sha256
             mkdir fftw_lib
             unzip fftw-${FFTW_VERSION}-dll${{matrix.VC_TARGET}}.zip -d fftw_lib/
+            cp fftw_lib/libfftw3-3.dll kvxopt/src/python/.libs
             echo "KVXOPT_FFTW_LIB_DIR=${{ github.workspace}}/fftw_lib" >> $GITHUB_ENV
             echo "KVXOPT_FFTW_INC_DIR=${{ github.workspace}}/fftw_lib" >> $GITHUB_ENV
             echo "KVXOPT_FFTW_LIB=libfftw3-3" >> $GITHUB_ENV
@@ -294,10 +317,9 @@ jobs:
           path: glpk_lib
 
       - name: Set GLPK path
-        shell: msys2 {0}
         run: |
-            echo "KVXOPT_GLPK_LIB_DIR=${{ github.workspace}}\glpk_lib\w64" >> $GITHUB_ENV
-            echo "KVXOPT_GLPK_INC_DIR=${{ github.workspace}}\glpk_lib\src" >> $GITHUB_ENV
+            echo "KVXOPT_GLPK_LIB_DIR=${{ github.workspace}}\glpk_lib\w64"  >> $env:GITHUB_ENV
+            echo "KVXOPT_GLPK_INC_DIR=${{ github.workspace}}\glpk_lib\src"  >> $env:GITHUB_ENV
 
       - uses: actions/download-artifact@v2
         with:
@@ -305,10 +327,11 @@ jobs:
           path: osqp_lib
 
       - name: Set OSQP path
-        shell: msys2 {0}
         run: |
-            echo "KVXOPT_OSQP_LIB_DIR=${{ github.workspace}}\osqp_lib\lib" >> $GITHUB_ENV
-            echo "KVXOPT_OSQP_INC_DIR=${{ github.workspace}}\osqp_lib\include\osqp" >> $GITHUB_ENV
+            copy osqp_lib\bin\osqp.dll kvxopt\src\python\.libs
+            copy osqp_lib\bin\qdldl.dll kvxopt\src\python\.libs
+            echo "KVXOPT_OSQP_LIB_DIR=${{ github.workspace}}\osqp_lib\lib"  >> $env:GITHUB_ENV
+            echo "KVXOPT_OSQP_INC_DIR=${{ github.workspace}}\osqp_lib\include\osqp"  >> $env:GITHUB_ENV
 
       - name: Create .lib import files for FFTW
         run: |
@@ -323,20 +346,16 @@ jobs:
           path: gsl_lib
 
       - name: Set GSL path
-        shell: msys2 {0}
         run: |
-            echo "KVXOPT_GSL_LIB_DIR=${{ github.workspace}}\gsl_lib\lib\Debug" >> $GITHUB_ENV
-            echo "KVXOPT_GSL_INC_DIR=${{ github.workspace}}\gsl_lib\include" >> $GITHUB_ENV
+            copy gsl_lib\bin\Debug\gsl.dll kvxopt\src\python\.libs
+            copy gsl_lib\bin\Debug\gslcblas.dll kvxopt\src\python\.libs
+            echo "KVXOPT_GSL_LIB_DIR=${{ github.workspace}}\gsl_lib\lib\Debug" >> $env:GITHUB_ENV
+            echo "KVXOPT_GSL_INC_DIR=${{ github.workspace}}\gsl_lib\include" >> $env:GITHUB_ENV
 
       - name: Build wheel
         run: |
           cd kvxopt
           python setup.py build
-          copy ${{ github.workspace}}\OpenBLAS\bin\libopenblas.dll build\lib.${{ matrix.PYTHON_ARCH_TARGET }}-${{ matrix.PYTHON_TARGET }}\kvxopt
-          copy ${{ github.workspace}}\gsl_lib\bin\Debug\gsl.dll build\lib.${{ matrix.PYTHON_ARCH_TARGET }}-${{ matrix.PYTHON_TARGET }}\kvxopt
-          copy ${{ github.workspace}}\gsl_lib\bin\Debug\gslcblas.dll build\lib.${{ matrix.PYTHON_ARCH_TARGET }}-${{ matrix.PYTHON_TARGET }}\kvxopt
-          copy ${{ github.workspace}}\fftw_lib\libfftw3-3.dll build\lib.${{ matrix.PYTHON_ARCH_TARGET }}-${{ matrix.PYTHON_TARGET }}\kvxopt
-          copy OpenBLAS_LINCENSE build\lib.${{ matrix.PYTHON_ARCH_TARGET }}-${{ matrix.PYTHON_TARGET }}\kvxopt
           python setup.py bdist_wheel
         shell: cmd
 
@@ -353,7 +372,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.6', '3.7', '3.8', '3.9', '3.10', '3.11']
+        python-version: ['3.8', '3.9', '3.10', '3.11']
         ARCH: [x64, x86]
 
     steps:
@@ -387,18 +406,6 @@ jobs:
             pip install --no-index --find-links . kvxopt
             python -c 'from kvxopt import blas,lapack,cholmod,umfpack,klu,glpk,osqp'
             pytest --cov=kvxopt kvxopt\tests
-
-      - name: Upload to BACKBLAZE
-        env:
-          BACKBLAZE_KEYID: ${{ secrets.BACKBLAZE_KEYID }}
-          BACKBLAZE_APPKEY: ${{ secrets.BACKBLAZE_APPKEY }}
-        run: |
-          pip install boto3
-
-          for /r %%f in (*.whl) do python s3_upload.py %%f
-
-        shell: cmd
-        if: ${{ env.UPLOAD_TO_BACKBLAZE == 1 }}
 
       - name: Publish wheels to PyPI test
         env:
