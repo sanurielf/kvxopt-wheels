@@ -47,6 +47,9 @@ jobs:
       - name: Install libraries
         run: |
             brew install openblas glpk gsl fftw suite-sparse osqp
+            brew list suite-sparse
+            echo "KVXOPT_SUITESPARSE_INC_DIR=$(brew --prefix)/include/suitesparse" >> $GITHUB_ENV
+            echo "KVXOPT_SUITESPARSE_LIB_DIR=$(brew --prefix)/lib" >> $GITHUB_ENV
 
       - name: Build
         run: |
