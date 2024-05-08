@@ -69,7 +69,7 @@ jobs:
           set -ex
           echo $BUILD_COMMIT
 
-          pip install virtualenv wheel
+          pip install setuptools setuptools_scm build virtualenv wheel
 
           source multibuild/common_utils.sh
           source multibuild/travis_steps.sh

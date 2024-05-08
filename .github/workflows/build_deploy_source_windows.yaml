@@ -220,7 +220,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11']
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
         suite-sparse: [src_suitesparse]
         ARCH: [x64, x86]
         include:
@@ -247,6 +247,9 @@ jobs:
 
         - python-version: 3.11
           PYTHON_TARGET: cpython-311
+
+        - python-version: 3.12
+          PYTHON_TARGET: cpython-312
 
     steps:
       - uses: actions/checkout@v2
@@ -375,7 +378,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11']
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
         ARCH: [x64, x86]
 
     steps:
@@ -397,7 +400,7 @@ jobs:
       - name: Install python testing dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest pytest-cov coveralls twine numpy
+          pip install setuptools setuptools_scm build wheel pytest pytest-cov coveralls twine numpy
 
 
       - uses: actions/download-artifact@v2
