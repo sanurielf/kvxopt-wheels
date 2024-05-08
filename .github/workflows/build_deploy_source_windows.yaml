@@ -64,16 +64,16 @@ jobs:
 
       - name: Publish wheels to PyPI test
         env:
-          TWINE_USERNAME: ${{ secrets.PYPI_TEST_USERNAME }}
-          TWINE_PASSWORD: ${{ secrets.PYPI_TEST_PASSWORD }}
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TEST_TOKEN }}
         run: |
           twine upload --repository testpypi kvxopt/dist/*.tar.gz
         if: ${{ env.UPLOAD_TO_TEST_PYPI == 1 }}
 
       - name: Publish wheels to PyPI
         env:
-          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
         run: |
           twine upload kvxopt/dist/*.tar.gz
         if: ${{ env.UPLOAD_TO_OFFI_PYPI == 1 }}
@@ -412,16 +412,16 @@ jobs:
 
       - name: Publish wheels to PyPI test
         env:
-          TWINE_USERNAME: ${{ secrets.PYPI_TEST_USERNAME }}
-          TWINE_PASSWORD: ${{ secrets.PYPI_TEST_PASSWORD }}
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TEST_TOKEN }}
         run: |
           twine upload --repository testpypi *.whl
         if: ${{ env.UPLOAD_TO_TEST_PYPI == 1 }}
 
       - name: Publish wheels to PyPI
         env:
-          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
         run: |
           twine upload *.whl
         if: ${{ env.UPLOAD_TO_OFFI_PYPI == 1 }}

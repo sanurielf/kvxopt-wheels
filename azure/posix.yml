@@ -101,8 +101,8 @@ jobs:
           twine upload --repository testpypi wheelhouse/*.whl
         condition: eq(variables['UPLOAD_TO_TEST_PYPI'], 1)
         env:
-          TWINE_USERNAME: $(PYPI_TEST_USERNAME)
-          TWINE_PASSWORD: $(PYPI_TEST_PASSWORD)
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: $(PYPI_TEST_TOKEN)
         displayName: Publish wheels to PyPI test
 
       - bash: |
@@ -111,8 +111,8 @@ jobs:
           twine upload wheelhouse/*.whl
         condition: eq(variables['UPLOAD_TO_OFFI_PYPI'], 1)
         env:
-          TWINE_USERNAME: $(PYPI_USERNAME)
-          TWINE_PASSWORD: $(PYPI_PASSWORD)
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: $(PYPI_TOKEN)
         displayName: Publish wheels to PyPI
 
 
