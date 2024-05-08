@@ -59,7 +59,7 @@ function pre_build {
 
     build_suitesparse
     if [ -n "$IS_MACOS" ]; then
-        export KVXOPT_SUITESPARSE_INC_DIR=$(brew --prefix)/include
+        export KVXOPT_SUITESPARSE_INC_DIR=$(brew --prefix)/include/suitesparse
         export KVXOPT_SUITESPARSE_LIB_DIR=$(brew --prefix)/lib
     else
         export KVXOPT_SUITESPARSE_INC_DIR=/usr/include/suitesparse
