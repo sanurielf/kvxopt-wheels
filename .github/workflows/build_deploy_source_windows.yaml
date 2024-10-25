@@ -57,7 +57,7 @@ jobs:
           python setup.py build
           python setup.py sdist
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: kvxopt-source
           path: kvxopt/dist/*.tar.gz
@@ -127,7 +127,7 @@ jobs:
             cmake --build . --target install
         shell: cmd
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: gsl-${{ matrix.ARCH }}
           path: gsl/build/dist/*
@@ -159,7 +159,7 @@ jobs:
             cd ..\..
         shell: cmd
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: glpk-${{ matrix.ARCH }}
           path: |
@@ -194,7 +194,7 @@ jobs:
             cmake --build . --target install
         shell: cmd
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: osqp-${{ matrix.ARCH }}
           path: osqp/build/dist/*
@@ -368,7 +368,7 @@ jobs:
           python setup.py bdist_wheel
         shell: cmd
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: windows-${{ matrix.ARCH }}-${{ matrix.python-version }}-wheel
           path: kvxopt/dist/*.whl
