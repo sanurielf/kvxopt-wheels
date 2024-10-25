@@ -320,7 +320,7 @@ jobs:
             tar -xf v${{ env.SUITESPARSE_VERSION }}.tar.gz
             echo "KVXOPT_SUITESPARSE_SRC_DIR=${{ github.workspace}}/SuiteSparse-${{ env.SUITESPARSE_VERSION }}" >> $GITHUB_ENV
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: glpk-${{ matrix.ARCH }}
           path: glpk_lib
@@ -330,7 +330,7 @@ jobs:
             echo "KVXOPT_GLPK_LIB_DIR=${{ github.workspace}}\glpk_lib\w64"  >> $env:GITHUB_ENV
             echo "KVXOPT_GLPK_INC_DIR=${{ github.workspace}}\glpk_lib\src"  >> $env:GITHUB_ENV
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: osqp-${{ matrix.ARCH }}
           path: osqp_lib
@@ -349,7 +349,7 @@ jobs:
           lib /machine:${{ matrix.ARCH }} /def:libfftw3-3.def
         shell: cmd
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: gsl-${{ matrix.ARCH }}
           path: gsl_lib
@@ -406,7 +406,7 @@ jobs:
           pip install setuptools setuptools_scm build wheel pytest pytest-cov coveralls twine numpy
 
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: windows-${{ matrix.ARCH }}-${{ matrix.python-version }}-wheel
 
