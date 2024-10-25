@@ -13,9 +13,9 @@ pr:
 variables:
   BUILD_COMMIT: "1.3.2.1"
   # Upload to test pipy
-  UPLOAD_TO_TEST_PYPI: 0
+  UPLOAD_TO_TEST_PYPI: 1
   # Upload to official pipy repo
-  UPLOAD_TO_OFFI_PYPI: 1
+  UPLOAD_TO_OFFI_PYPI: 0
 
   BUILD_LINUX: true
   BUILD_OSX: true
@@ -54,6 +54,11 @@ jobs:
             MB_ML_VER: "2014"
             DOCKER_TEST_IMAGE: "multibuild/focal_{PLAT}"
 
+          py_3.13_64_manylinux2014:
+            MB_PYTHON_VERSION: "3.13"
+            MB_ML_VER: "2014"
+            DOCKER_TEST_IMAGE: "multibuild/focal_{PLAT}"
+
       # x86_64 linux builds
 
     - template: azure/posix.yml
@@ -87,6 +92,11 @@ jobs:
             MB_ML_VER: "2014"
             DOCKER_TEST_IMAGE: "multibuild/focal_{PLAT}"
 
+          py_3.13_aarch64_manylinux2014:
+            MB_PYTHON_VERSION: "3.13"
+            MB_ML_VER: "2014"
+            DOCKER_TEST_IMAGE: "multibuild/focal_{PLAT}"
+
   - ${{ if eq(variables['BUILD_OSX'], 'true' ) }}:
 
     - template: azure/posix.yml
@@ -109,6 +119,9 @@ jobs:
           py_3.12_64:
             MB_PYTHON_VERSION: "3.12"
             MB_PYTHON_OSX_VER: "10.9"
+          py_3.13_64:
+            MB_PYTHON_VERSION: "3.13"
+            MB_PYTHON_OSX_VER: "10.9"
 
           # OSX arm64 builds
           py_3.8_arm64:
@@ -129,5 +142,9 @@ jobs:
             PLAT: arm64
           py_3.12_arm64:
             MB_PYTHON_VERSION: "3.12"
+            MB_PYTHON_OSX_VER: "10.9"
+            PLAT: arm64
+          py_3.13_arm64:
+            MB_PYTHON_VERSION: "3.13"
             MB_PYTHON_OSX_VER: "10.9"
             PLAT: arm64
