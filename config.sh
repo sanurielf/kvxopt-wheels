@@ -89,6 +89,7 @@ function pre_build {
 
     if [ -n "${IS_MACOS}" ]; then
         export DYLD_LIBRARY_PATH="${BUILD_PREFIX}/lib/:$DYLD_LIBRARY_PATH"
+        export MACOSX_DEPLOYMENT_TARGET=14.0
     fi
 }
 

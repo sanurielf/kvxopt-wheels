@@ -6,8 +6,8 @@ GSL_VERSION="2.7"
 GSL_SHA256="efbbf3785da0e53038be7907500628b466152dbc3c173a87de1b5eba2e23602b"
 FFTW_VERSION="3.3.8"
 FFTW_SHA256="6113262f6e92c5bd474f2875fa1b01054c4ad5040f6b0da7c03c98821d9ae303"
-SUITESPARSE_VERSION="7.7.0"
-SUITESPARSE_SHA256="529b067f5d80981f45ddf6766627b8fc5af619822f068f342aab776e683df4f3"
+SUITESPARSE_VERSION="7.8.2"
+SUITESPARSE_SHA256="996c48c87baaeb5fc04bd85c7e66d3651a56fe749c531c60926d75b4db5d2181"
 OSQP_VERSION="0.6.3"
 OPENBLAS_VERSION="0.3.23"
 OPENBLAS_SHA256="0484d275f87e9b8641ff2eecaa9df2830cbe276ac79ad80494822721de6e1693"
@@ -177,27 +177,20 @@ function build_gsl {
 function build_osqp {
   if [ -e osqp-stamp ]; then return; fi
 
-  if [ -n "$IS_MACOS" ]; then
-    brew install osqp
-    brew link --force osqp
-    export KVXOPT_OSQP_INC_DIR=$(brew --prefix)/include/osqp
-    export KVXOPT_OSQP_LIB_DIR=$(brew --prefix)/lib
-  else
 
-    get_modern_cmake
-    git clone --recursive https://github.com/oxfordcontrol/osqp.git
-    (cd osqp \
-        && git checkout v${OSQP_VERSION} \
-        && git submodule sync --recursive \
-        && git -c protocol.version=2 submodule update --init --force --depth=1 --recursive \
-        && mkdir build \
-        && cd build \
-        && cmake -DCMAKE_INSTALL_PREFIX=$BUILD_PREFIX .. \
-        && cmake --build . --target install \
-        && cd ../.. \
-        && rm -rf osqp)
-    export KVXOPT_OSQP_INC_DIR=${BUILD_PREFIX}/include/osqp
-    export KVXOPT_OSQP_LIB_DIR=${BUILD_PREFIX}/lib
-  fi
-  touch osqp-stamp
+  get_modern_cmake
+  git clone --recursive https://github.com/oxfordcontrol/osqp.git
+  (cd osqp \
+      && git checkout v${OSQP_VERSION} \
+      && git submodule sync --recursive \
+      && git -c protocol.version=2 submodule update --init --force --depth=1 --recursive \
+      && mkdir build \
+      && cd build \
+      && cmake -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_INSTALL_PREFIX=$BUILD_PREFIX .. \
+      && cmake --build . --target install \
+      && cd ../.. \
+      && rm -rf osqp)
+  export KVXOPT_OSQP_INC_DIR=${BUILD_PREFIX}/include/osqp
+  export KVXOPT_OSQP_LIB_DIR=${BUILD_PREFIX}/lib
+
 }
