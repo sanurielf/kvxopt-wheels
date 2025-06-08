@@ -1,28 +1,32 @@
-schedules:
-- cron: "30 16 * * 0"
-  # 4:30pm UTC every Sunday
-  displayName: Weekly build
+trigger:
   branches:
     include:
-    - master
-  always: true
+      - master
 
-pr:
-- master
+schedules:
+  - cron: "30 16 * * 0" # 4:30pm UTC every Sunday
+    displayName: Weekly build
+    branches:
+      include:
+        - master
+    always: true
+
+parameters:
+  - name: BUILD_LINUX
+    type: boolean
+    default: true
+  - name: BUILD_OSX
+    type: boolean
+    default: true
 
 variables:
   BUILD_COMMIT: "1.3.2.1"
-  # Upload to test pipy
   UPLOAD_TO_TEST_PYPI: 1
-  # Upload to official pipy repo
   UPLOAD_TO_OFFI_PYPI: 0
 
-  BUILD_LINUX: true
-  BUILD_OSX: true
-
 jobs:
-    # x86_64 linux builds
-  - ${{ if eq(variables['BUILD_LINUX'], 'true' ) }}:
+  # Linux x86_64 builds
+  - ${{ if eq(parameters.BUILD_LINUX, true) }}:
     - template: azure/posix.yml
       parameters:
         name: linux_x86_64
@@ -33,34 +37,29 @@ jobs:
             MB_PYTHON_VERSION: "3.8"
             MB_ML_VER: "2014"
             DOCKER_TEST_IMAGE: "multibuild/focal_{PLAT}"
-
           py_3.9_64_manylinux2014:
             MB_PYTHON_VERSION: "3.9"
             MB_ML_VER: "2014"
             DOCKER_TEST_IMAGE: "multibuild/focal_{PLAT}"
-
           py_3.10_64_manylinux2014:
             MB_PYTHON_VERSION: "3.10"
             MB_ML_VER: "2014"
             DOCKER_TEST_IMAGE: "multibuild/focal_{PLAT}"
-
           py_3.11_64_manylinux2014:
             MB_PYTHON_VERSION: "3.11"
             MB_ML_VER: "2014"
             DOCKER_TEST_IMAGE: "multibuild/focal_{PLAT}"
-
           py_3.12_64_manylinux2014:
             MB_PYTHON_VERSION: "3.12"
             MB_ML_VER: "2014"
             DOCKER_TEST_IMAGE: "multibuild/focal_{PLAT}"
-
           py_3.13_64_manylinux2014:
             MB_PYTHON_VERSION: "3.13"
             MB_ML_VER: "2014"
             DOCKER_TEST_IMAGE: "multibuild/focal_{PLAT}"
 
-      # x86_64 linux builds
-
+  # Linux aarch64 builds
+  - ${{ if eq(parameters.BUILD_LINUX, true) }}:
     - template: azure/posix.yml
       parameters:
         name: linux_aarch64
@@ -71,34 +70,29 @@ jobs:
             MB_PYTHON_VERSION: "3.8"
             MB_ML_VER: "2014"
             DOCKER_TEST_IMAGE: "multibuild/focal_{PLAT}"
-
           py_3.9_aarch64_manylinux2014:
             MB_PYTHON_VERSION: "3.9"
             MB_ML_VER: "2014"
             DOCKER_TEST_IMAGE: "multibuild/focal_{PLAT}"
-
           py_3.10_aarch64_manylinux2014:
             MB_PYTHON_VERSION: "3.10"
             MB_ML_VER: "2014"
             DOCKER_TEST_IMAGE: "multibuild/focal_{PLAT}"
-
           py_3.11_aarch64_manylinux2014:
             MB_PYTHON_VERSION: "3.11"
             MB_ML_VER: "2014"
             DOCKER_TEST_IMAGE: "multibuild/focal_{PLAT}"
-
           py_3.12_aarch64_manylinux2014:
             MB_PYTHON_VERSION: "3.12"
             MB_ML_VER: "2014"
             DOCKER_TEST_IMAGE: "multibuild/focal_{PLAT}"
-
           py_3.13_aarch64_manylinux2014:
             MB_PYTHON_VERSION: "3.13"
             MB_ML_VER: "2014"
             DOCKER_TEST_IMAGE: "multibuild/focal_{PLAT}"
 
-  - ${{ if eq(variables['BUILD_OSX'], 'true' ) }}:
-
+  # macOS builds
+  - ${{ if eq(parameters.BUILD_OSX, true) }}:
     - template: azure/posix.yml
       parameters:
         name: macOS
@@ -122,8 +116,6 @@ jobs:
           py_3.13_64:
             MB_PYTHON_VERSION: "3.13"
             MB_PYTHON_OSX_VER: "10.9"
-
-          # OSX arm64 builds
           py_3.8_arm64:
             MB_PYTHON_VERSION: "3.8"
             MB_PYTHON_OSX_VER: "10.9"
